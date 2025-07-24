@@ -14,6 +14,7 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
 
   const password_hash = await hash(password, 6)
 
+  // Search for user with the same email
   const userWithTheSameEmail = await prisma.user.findUnique({
     where: {
       email,
