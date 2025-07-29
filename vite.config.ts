@@ -3,4 +3,11 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
   plugins: [tsconfigPaths()],
+  test: {
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      include: ['src/use-cases/**', 'src/repositories/in-memory/**'],
+    },
+  },
 })
