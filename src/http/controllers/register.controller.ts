@@ -6,9 +6,9 @@ import { EmailAlreadyExists } from '@/use-cases/errors/email-already-exists'
 
 export async function register(request: FastifyRequest, reply: FastifyReply) {
   const registerBodySchema = z.object({
-    name: z.string().nonempty(),
-    email: z.string().nonempty(),
-    password: z.string().nonempty().min(6),
+    name: z.string().nonempty(), // the fields should not be empty
+    email: z.string().nonempty(), // the fields should not be empty
+    password: z.string().nonempty().min(6), // the fields should not be empty
   })
 
   const { name, email, password } = registerBodySchema.parse(request.body)
