@@ -7,7 +7,7 @@ A GymPass-style application for gym check-ins and user management.
 ## ✅ Functional Requirements (RFs)
 
 - [x] Users must be able to register.
-- [ ] Users must be able to authenticate.
+- [x] Users must be able to authenticate.
 - [ ] Authenticated users must be able to retrieve their profile.
 - [ ] Authenticated users must be able to view the number of check-ins they have made.
 - [ ] Authenticated users must be able to access their check-in history.

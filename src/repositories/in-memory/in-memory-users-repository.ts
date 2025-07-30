@@ -1,8 +1,19 @@
-import { User, Prisma } from 'generated/prisma'
+import { Prisma, User } from 'generated/prisma'
 import { UserRepository } from '../users-repository'
 
 export class InMemoryUsersRepository implements UserRepository {
   public userItems: User[] = []
+
+  async finbById(id: string) {
+    const user = this.userItems.find((item) => item.id === id)
+
+    if (!user) {
+      return null
+    }
+
+    return user
+  }
+
   async findByEmail(email: string) {
     const user = this.userItems.find((item) => item.email === email)
 
