@@ -8,11 +8,11 @@ A GymPass-style application for gym check-ins and user management.
 
 - [x] Users must be able to register.
 - [x] Users must be able to authenticate.
-- [ ] Authenticated users must be able to retrieve their profile.
+- [x] Authenticated users must be able to retrieve their profile.
 - [ ] Authenticated users must be able to view the number of check-ins they have made.
 - [ ] Authenticated users must be able to access their check-in history.
 - [ ] Users must be able to search for gyms by name.
-- [ ] Users must be able to check in at a gym.
+- [x] Users must be able to check in at a gym.
 - [ ] Administrators must be able to validate a user's check-in.
 - [ ] Administrators must be able to register gyms.
 
@@ -21,8 +21,8 @@ A GymPass-style application for gym check-ins and user management.
 ## 📌 Business Rules (RNs)
 
 - [x] Users cannot register with an email that is already in use.
-- [ ] Users cannot check in more than once per day.
-- [ ] Users can only check in if they are within 100 meters of the gym.
+- [x] Users cannot check in more than once per day.
+- [ ] Users can only check in if they are within (100m) of the gym.
 - [ ] Check-ins can only be validated after 20 minutes of being created.
 - [ ] Only administrators can validate check-ins.
 - [ ] Only administrators can register new gyms.
