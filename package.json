@@ -12,6 +12,9 @@
     "test:ui": "vitest --ui",
     "build": "tsup src --out-dir build"
   },
+  "engines": {
+    "node": "v22.17.1"
+  },
   "keywords": [],
   "author": "Gustavo Santana",
   "license": "ISC",
