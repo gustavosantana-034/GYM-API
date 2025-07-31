@@ -27,8 +27,6 @@ describe('Check-In Use Case', () => {
     expect(checkIn.id).toEqual(expect.any(String))
   })
 
-
-
   it('should not be able to check in twice in the same day', async () => {
     vi.setSystemTime(new Date(2025, 6, 31, 8, 0, 0)) // Mock
 
