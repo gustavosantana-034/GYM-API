@@ -1,5 +1,5 @@
 {
-  "name": "gym_api",
+  "name": "@gustavosantana-034/GYM-API",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
@@ -11,6 +11,9 @@
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "build": "tsup src --out-dir build"
+  },
+  "publishConfig": {
+     "registry": "https://npm.pkg.github.com/"
   },
   "engines": {
     "node": "v22.17.1"
