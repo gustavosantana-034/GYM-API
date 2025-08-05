@@ -1,44 +1,31 @@
-import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  LineChart, 
-  Line, 
-  AreaChart, 
-  Area, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
-import { 
-  TrendingUp, 
-  Target, 
-  Clock, 
-  Flame,
-  Activity,
-  Trophy,
-  Calendar,
-  Zap
+import {
+    Activity,
+    Clock,
+    Flame,
+    Target,
+    TrendingUp,
+    Trophy,
+    Zap
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import {
+    Area,
+    AreaChart,
+    CartesianGrid,
+    Cell,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis
+} from 'recharts';
 import { useAuth } from '../contexts/AuthContext';
-import { StatCardProps, WeeklyProgress, BodyMetrics } from '../types';
 
-interface RecentWorkout {
-  name: string;
-  duration: string;
-  calories: number;
-  date: string;
-}
-
-const Dashboard: React.FC = () => {
+const Dashboard = () => {
   const { user } = useAuth();
-  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -46,7 +33,7 @@ const Dashboard: React.FC = () => {
   }, []);
 
   // Mock data for charts
-  const weeklyProgress: WeeklyProgress[] = [
+  const weeklyProgress = [
     { day: 'Mon', workouts: 2, calories: 450, time: 45 },
     { day: 'Tue', workouts: 1, calories: 320, time: 30 },
     { day: 'Wed', workouts: 3, calories: 680, time: 65 },
@@ -56,20 +43,20 @@ const Dashboard: React.FC = () => {
     { day: 'Sun', workouts: 1, calories: 350, time: 35 }
   ];
 
-  const bodyMetrics: BodyMetrics[] = [
+  const bodyMetrics = [
     { name: 'Muscle', value: 45, color: '#00ffff' },
     { name: 'Fat', value: 15, color: '#ff00ff' },
     { name: 'Water', value: 25, color: '#0080ff' },
     { name: 'Bone', value: 15, color: '#00ff41' }
   ];
 
-  const recentWorkouts: RecentWorkout[] = [
+  const recentWorkouts = [
     { name: 'Upper Body Strength', duration: '45 min', calories: 320, date: '2 hours ago' },
     { name: 'Cardio HIIT', duration: '30 min', calories: 450, date: 'Yesterday' },
     { name: 'Lower Body Power', duration: '50 min', calories: 380, date: '2 days ago' }
   ];
 
-  const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value, subtitle, color, delay }) => (
+  const StatCard = ({ icon: Icon, title, value, subtitle, color, delay }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -88,26 +75,6 @@ const Dashboard: React.FC = () => {
       </div>
     </motion.div>
   );
-
-  const handleStartWorkout = (): void => {
-    // TODO: Implement workout start functionality
-    console.log('Starting workout...');
-  };
-
-  const handleScheduleSession = (): void => {
-    // TODO: Implement session scheduling
-    console.log('Scheduling session...');
-  };
-
-  const handleViewProgress = (): void => {
-    // TODO: Implement progress view
-    console.log('Viewing progress...');
-  };
-
-  const handleChatWithAI = (): void => {
-    // TODO: Implement AI chat
-    console.log('Opening AI chat...');
-  };
 
   return (
     <div className="space-y-6">
@@ -312,28 +279,16 @@ const Dashboard: React.FC = () => {
             Quick Actions
           </h3>
           <div className="space-y-3">
-            <button 
-              onClick={handleStartWorkout}
-              className="w-full cyber-button"
-            >
+            <button className="w-full cyber-button">
               Start Workout
             </button>
-            <button 
-              onClick={handleScheduleSession}
-              className="w-full bg-dark-bg border border-dark-border text-white py-3 px-4 rounded-lg hover:border-neon-magenta transition-colors duration-300"
-            >
+            <button className="w-full bg-dark-bg border border-dark-border text-white py-3 px-4 rounded-lg hover:border-neon-magenta transition-colors duration-300">
               Schedule Session
             </button>
-            <button 
-              onClick={handleViewProgress}
-              className="w-full bg-dark-bg border border-dark-border text-white py-3 px-4 rounded-lg hover:border-neon-green transition-colors duration-300"
-            >
+            <button className="w-full bg-dark-bg border border-dark-border text-white py-3 px-4 rounded-lg hover:border-neon-green transition-colors duration-300">
               View Progress
             </button>
-            <button 
-              onClick={handleChatWithAI}
-              className="w-full bg-dark-bg border border-dark-border text-white py-3 px-4 rounded-lg hover:border-neon-purple transition-colors duration-300"
-            >
+            <button className="w-full bg-dark-bg border border-dark-border text-white py-3 px-4 rounded-lg hover:border-neon-purple transition-colors duration-300">
               Chat with AI
             </button>
           </div>

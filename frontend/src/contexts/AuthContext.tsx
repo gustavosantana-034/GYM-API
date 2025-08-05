@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import avatarImage from '../assets/gugu.jpg';
-import { AuthContextType, User, AuthResponse } from '../types';
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import avatarImage from '../assets/profile.jpg';
+import { AuthContextType, AuthResponse, User } from '../types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

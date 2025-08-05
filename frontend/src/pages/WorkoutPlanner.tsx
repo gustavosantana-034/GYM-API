@@ -10,17 +10,39 @@ import {
   Flame,
   Dumbbell,
   Play,
-  Pause,
   CheckCircle,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
 
-const WorkoutPlanner = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showAddWorkout, setShowAddWorkout] = useState(false);
-  const [workouts, setWorkouts] = useState([
+interface Workout {
+  id: number;
+  name: string;
+  date: string;
+  duration: string;
+  type: string;
+  exercises: string[];
+  completed: boolean;
+}
+
+interface WorkoutType {
+  name: string;
+  color: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+interface CalendarDayProps {
+  date: Date | null;
+  isCurrentMonth: boolean;
+  isSelected: boolean;
+  hasWorkouts: boolean;
+}
+
+const WorkoutPlanner: React.FC = () => {
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [showAddWorkout, setShowAddWorkout] = useState<boolean>(false);
+  const [workouts, setWorkouts] = useState<Workout[]>([
     {
       id: 1,
       name: 'Upper Body Strength',
@@ -50,14 +72,14 @@ const WorkoutPlanner = () => {
     }
   ]);
 
-  const workoutTypes = [
+  const workoutTypes: WorkoutType[] = [
     { name: 'Strength', color: 'neon-cyan', icon: Dumbbell },
     { name: 'Cardio', color: 'neon-magenta', icon: Flame },
     { name: 'Power', color: 'neon-blue', icon: Target },
     { name: 'Flexibility', color: 'neon-green', icon: Clock }
   ];
 
-  const getDaysInMonth = (date) => {
+  const getDaysInMonth = (date: Date): (Date | null)[] => {
     const year = date.getFullYear();
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
@@ -65,7 +87,7 @@ const WorkoutPlanner = () => {
     const daysInMonth = lastDay.getDate();
     const startingDay = firstDay.getDay();
     
-    const days = [];
+    const days: (Date | null)[] = [];
     
     // Add empty days for padding
     for (let i = 0; i < startingDay; i++) {
@@ -80,16 +102,16 @@ const WorkoutPlanner = () => {
     return days;
   };
 
-  const formatDate = (date) => {
+  const formatDate = (date: Date): string => {
     return date.toISOString().split('T')[0];
   };
 
-  const getWorkoutsForDate = (date) => {
+  const getWorkoutsForDate = (date: Date): Workout[] => {
     const dateStr = formatDate(date);
     return workouts.filter(workout => workout.date === dateStr);
   };
 
-  const toggleWorkoutCompletion = (workoutId) => {
+  const toggleWorkoutCompletion = (workoutId: number): void => {
     setWorkouts(workouts.map(workout => 
       workout.id === workoutId 
         ? { ...workout, completed: !workout.completed }
@@ -97,7 +119,7 @@ const WorkoutPlanner = () => {
     ));
   };
 
-  const CalendarDay = ({ date, isCurrentMonth, isSelected, hasWorkouts }) => {
+  const CalendarDay: React.FC<CalendarDayProps> = ({ date, isCurrentMonth, isSelected, hasWorkouts }) => {
     if (!date) return <div className="h-24"></div>;
 
     const dayWorkouts = getWorkoutsForDate(date);
@@ -153,6 +175,18 @@ const WorkoutPlanner = () => {
     );
   };
 
+  const handleAddWorkout = (): void => {
+    setShowAddWorkout(true);
+  };
+
+  const handlePreviousMonth = (): void => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
+  };
+
+  const handleNextMonth = (): void => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -171,7 +205,7 @@ const WorkoutPlanner = () => {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setShowAddWorkout(true)}
+          onClick={handleAddWorkout}
           className="cyber-button flex items-center space-x-2"
         >
           <Plus className="w-5 h-5" />
@@ -196,7 +230,7 @@ const WorkoutPlanner = () => {
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
+                onClick={handlePreviousMonth}
                 className="p-2 text-gray-400 hover:text-neon-cyan transition-colors duration-300"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -204,7 +238,7 @@ const WorkoutPlanner = () => {
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
+                onClick={handleNextMonth}
                 className="p-2 text-gray-400 hover:text-neon-cyan transition-colors duration-300"
               >
                 <ChevronRight className="w-5 h-5" />
@@ -226,9 +260,9 @@ const WorkoutPlanner = () => {
               <CalendarDay
                 key={index}
                 date={date}
-                isCurrentMonth={date && date.getMonth() === currentDate.getMonth()}
-                isSelected={date && formatDate(date) === formatDate(selectedDate)}
-                hasWorkouts={date && getWorkoutsForDate(date).length > 0}
+                isCurrentMonth={date ? date.getMonth() === currentDate.getMonth() : false}
+                isSelected={date ? formatDate(date) === formatDate(selectedDate) : false}
+                hasWorkouts={date ? getWorkoutsForDate(date).length > 0 : false}
               />
             ))}
           </div>

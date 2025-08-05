@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import { SignupFormData } from '../types';
 import { 
   User, 
   Mail, 
@@ -14,23 +15,23 @@ import {
   CheckCircle
 } from 'lucide-react';
 
-const Signup = () => {
-  const [formData, setFormData] = useState({
+const Signup: React.FC = () => {
+  const [formData, setFormData] = useState<SignupFormData>({
     name: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [passwordStrength, setPasswordStrength] = useState(0);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const [passwordStrength, setPasswordStrength] = useState<number>(0);
   
   const { signup } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
@@ -50,7 +51,7 @@ const Signup = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -82,17 +83,25 @@ const Signup = () => {
     }
   };
 
-  const getPasswordStrengthColor = () => {
+  const getPasswordStrengthColor = (): string => {
     if (passwordStrength <= 2) return 'text-red-400';
     if (passwordStrength <= 3) return 'text-yellow-400';
     return 'text-green-400';
   };
 
-  const getPasswordStrengthText = () => {
+  const getPasswordStrengthText = (): string => {
     if (passwordStrength <= 2) return 'Weak';
     if (passwordStrength <= 3) return 'Fair';
     if (passwordStrength <= 4) return 'Good';
     return 'Strong';
+  };
+
+  const togglePasswordVisibility = (): void => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = (): void => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   return (
@@ -198,7 +207,7 @@ const Signup = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={togglePasswordVisibility}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-300"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -258,7 +267,7 @@ const Signup = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  onClick={toggleConfirmPasswordVisibility}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-300"
                 >
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}

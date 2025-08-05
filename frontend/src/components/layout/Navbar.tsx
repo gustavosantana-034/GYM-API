@@ -1,31 +1,23 @@
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import {
-  Bell,
-  LogOut,
-  Search,
-  Settings,
+import { useAuth } from '../../contexts/AuthContext';
+import { 
+  Search, 
+  Bell, 
+  Settings, 
   User,
+  LogOut,
   Zap
 } from 'lucide-react';
-import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 
-const Navbar: React.FC = () => {
+const Navbar = () => {
   const { user, logout } = useAuth();
-  const [showProfileMenu, setShowProfileMenu] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const handleLogout = (): void => {
+  const handleLogout = () => {
     logout();
     setShowProfileMenu(false);
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setSearchQuery(e.target.value);
-  };
-
-  const toggleProfileMenu = (): void => {
-    setShowProfileMenu(!showProfileMenu);
   };
 
   return (
@@ -34,7 +26,6 @@ const Navbar: React.FC = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
-      // @ts-ignore
     >
       <div className="flex items-center justify-between">
         {/* Logo and Brand */}
@@ -57,7 +48,7 @@ const Navbar: React.FC = () => {
               type="text"
               placeholder="Search workouts, exercises..."
               value={searchQuery}
-              onChange={handleSearchChange}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-white placeholder-gray-400 focus:border-neon-cyan focus:outline-none transition-all duration-300"
             />
           </div>
@@ -70,7 +61,6 @@ const Navbar: React.FC = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             className="relative p-2 text-gray-400 hover:text-neon-cyan transition-colors duration-300"
-
           >
             <Bell className="w-6 h-6" />
             <span className="absolute -top-1 -right-1 w-3 h-3 bg-neon-magenta rounded-full animate-pulse"></span>
@@ -90,7 +80,7 @@ const Navbar: React.FC = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={toggleProfileMenu}
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
               className="flex items-center space-x-3 p-2 rounded-lg hover:bg-dark-bg transition-colors duration-300"
             >
               <img

@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Crown,
-  Check,
-  Star,
-  Zap,
-  Shield,
-  Users,
-  Target,
-  Award,
-  ArrowRight,
-  Sparkles
+import {
+    ArrowRight,
+    Award,
+    Check,
+    Crown,
+    Shield,
+    Sparkles,
+    Star,
+    Target,
+    Users,
+    Zap
 } from 'lucide-react';
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Membership = () => {
@@ -217,7 +217,7 @@ const Membership = () => {
         </div>
         <p className="text-gray-400">
           You're currently on the {user?.membership || 'Basic'} plan. 
-          {user?.membership !== 'elite' && ' Upgrade to unlock more features!'}
+          {user?.membership !== 'pro' && ' Upgrade to unlock more features!'}
         </p>
       </motion.div>
 

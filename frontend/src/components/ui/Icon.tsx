@@ -88,7 +88,15 @@ import {
   MdMicOff
 } from 'react-icons/md';
 
-const iconMap = {
+interface IconProps {
+  name: string;
+  size?: number;
+  className?: string;
+  fallback?: boolean;
+  [key: string]: any;
+}
+
+const iconMap: Record<string, React.ComponentType<any>> = {
   // Lucide React icons
   mail: Mail,
   lock: Lock,
@@ -174,7 +182,7 @@ const iconMap = {
   micOffFallback: MdMicOff
 };
 
-const Icon = ({ name, size = 24, className = "", fallback = false, ...props }) => {
+const Icon: React.FC<IconProps> = ({ name, size = 24, className = "", fallback = false, ...props }) => {
   const iconName = fallback ? `${name}Fallback` : name;
   const IconComponent = iconMap[iconName];
   

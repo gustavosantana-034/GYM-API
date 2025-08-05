@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { LoginFormData } from '../types';
 // Icons are now using React Icons for better compatibility
 import { 
   MdEmail, 
@@ -14,19 +13,20 @@ import {
   MdError
 } from 'react-icons/md';
 
-const Login: React.FC = () => {
-  const [formData, setFormData] = useState<LoginFormData>({
+
+const Login = () => {
+  const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -34,7 +34,7 @@ const Login: React.FC = () => {
     setError('');
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -53,20 +53,6 @@ const Login: React.FC = () => {
     }
   };
 
-  const togglePasswordVisibility = (): void => {
-    setShowPassword(!showPassword);
-  };
-
-  const handleGoogleLogin = (): void => {
-    // TODO: Implement Google login
-    console.log('Google login clicked');
-  };
-
-  const handleFacebookLogin = (): void => {
-    // TODO: Implement Facebook login
-    console.log('Facebook login clicked');
-  };
-
   return (
     <div className="min-h-screen bg-dark-bg cyber-grid flex items-center justify-center p-4">
       <motion.div
@@ -82,9 +68,9 @@ const Login: React.FC = () => {
           transition={{ delay: 0.2 }}
           className="text-center mb-8"
         >
-          <div className="w-16 h-16 bg-gradient-to-r from-neon-cyan to-neon-blue rounded-2xl mx-auto mb-4 flex items-center justify-center">
-            <MdFlashOn className="w-8 h-8 text-white" />
-          </div>
+                        <div className="w-16 h-16 bg-gradient-to-r from-neon-cyan to-neon-blue rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                <MdFlashOn className="w-8 h-8 text-white" />
+              </div>
           <h1 className="text-3xl font-orbitron font-bold text-neon-cyan neon-text mb-2">
             CyberFit
           </h1>
@@ -151,7 +137,7 @@ const Login: React.FC = () => {
                 />
                 <button
                   type="button"
-                  onClick={togglePasswordVisibility}
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-300"
                 >
                   {showPassword ? <MdVisibilityOff className="w-5 h-5" /> : <MdVisibility className="w-5 h-5" />}
@@ -207,17 +193,11 @@ const Login: React.FC = () => {
 
           {/* Social Login */}
           <div className="space-y-3">
-            <button 
-              onClick={handleGoogleLogin}
-              className="w-full bg-dark-bg border border-dark-border text-white py-3 px-4 rounded-lg hover:border-neon-magenta transition-colors duration-300 flex items-center justify-center space-x-2"
-            >
+            <button className="w-full bg-dark-bg border border-dark-border text-white py-3 px-4 rounded-lg hover:border-neon-magenta transition-colors duration-300 flex items-center justify-center space-x-2">
               <div className="w-5 h-5 bg-red-500 rounded-full"></div>
               <span>Continue with Google</span>
             </button>
-            <button 
-              onClick={handleFacebookLogin}
-              className="w-full bg-dark-bg border border-dark-border text-white py-3 px-4 rounded-lg hover:border-neon-blue transition-colors duration-300 flex items-center justify-center space-x-2"
-            >
+            <button className="w-full bg-dark-bg border border-dark-border text-white py-3 px-4 rounded-lg hover:border-neon-blue transition-colors duration-300 flex items-center justify-center space-x-2">
               <div className="w-5 h-5 bg-blue-500 rounded-full"></div>
               <span>Continue with Facebook</span>
             </button>

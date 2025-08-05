@@ -2,7 +2,7 @@ import React from 'react';
 import { Mail, Lock, Eye, Zap } from 'lucide-react';
 import { MdEmail, MdLock, MdVisibility, MdFlashOn } from 'react-icons/md';
 
-const IconTest = () => {
+const IconTest: React.FC = () => {
   return (
     <div className="p-8 bg-dark-bg text-white">
       <h2 className="text-2xl font-bold mb-6">Icon Test</h2>

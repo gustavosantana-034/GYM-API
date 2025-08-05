@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Mail, Lock, Eye, Zap } from 'lucide-react';
 import Icon from './ui/Icon';
 
-const DebugIcons = () => {
-  const [useFallback, setUseFallback] = useState(false);
+const DebugIcons: React.FC = () => {
+  const [useFallback, setUseFallback] = useState<boolean>(false);
 
   return (
     <div className="p-8 bg-dark-bg text-white min-h-screen">

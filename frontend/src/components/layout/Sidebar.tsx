@@ -12,15 +12,8 @@ import {
   Zap
 } from 'lucide-react';
 
-interface MenuItem {
-  path: string;
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  color: string;
-}
-
-const Sidebar: React.FC = () => {
-  const menuItems: MenuItem[] = [
+const Sidebar = () => {
+  const menuItems = [
     {
       path: '/',
       icon: Home,
@@ -52,11 +45,6 @@ const Sidebar: React.FC = () => {
       color: 'text-neon-green'
     }
   ];
-
-  const handleStartWorkout = (): void => {
-    // TODO: Implement workout start functionality
-    console.log('Starting workout...');
-  };
 
   return (
     <motion.aside 
@@ -144,10 +132,7 @@ const Sidebar: React.FC = () => {
             <Zap className="w-6 h-6 text-white" />
           </div>
           <p className="text-xs text-gray-400 mb-2">Ready to train?</p>
-          <button 
-            onClick={handleStartWorkout}
-            className="cyber-button text-xs px-4 py-2"
-          >
+          <button className="cyber-button text-xs px-4 py-2">
             Start Workout
           </button>
         </div>

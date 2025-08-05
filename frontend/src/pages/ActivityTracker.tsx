@@ -5,13 +5,9 @@ import {
   Play,
   Pause,
   Square,
-  Clock,
-  Target,
   Flame,
-  TrendingUp,
   BarChart3,
   Timer,
-  Zap,
   Heart,
   Gauge
 } from 'lucide-react';
