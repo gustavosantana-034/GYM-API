@@ -16,6 +16,9 @@
     "lucide-react": "^0.292.0",
     "web-vitals": "^2.1.4"
   },
+  "engines": {
+    "node": "22.17.1"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
