@@ -4,24 +4,26 @@ import { CheckInsRepository } from '../repositories/check-ins-repository'
 import { InMemoryCheckInsRepository } from '../repositories/in-memory/in-memory-check-ins-repository'
 import { InMemoryGymsRepository } from '../repositories/in-memory/in-memory-gyms-repository'
 import { CheckInUseCase } from './check-in-use-case'
+import { MaxDistanceError } from './errors/max-disatance-error'
+import { MaxNumberOfCheckInsError } from './errors/max-number-of-check-ins-error'
 
 let checkInsRepository: CheckInsRepository
 let gymsRepository: InMemoryGymsRepository
 let sut: CheckInUseCase
 
 describe('Check-In Use Case', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     checkInsRepository = new InMemoryCheckInsRepository()
     gymsRepository = new InMemoryGymsRepository()
     sut = new CheckInUseCase(checkInsRepository, gymsRepository)
 
-    gymsRepository.userItems.push({
+    await gymsRepository.create({
       id: 'gym-01',
       title: 'Gym Russel',
       descrption: '',
       phone: '',
-      latitude: new Decimal(-23.2805045),
-      longitude: new Decimal(-45.8944638),
+      latitude: -23.2805045,
+      longitude: -45.8944638,
     })
 
     vi.useFakeTimers()
@@ -59,7 +61,7 @@ describe('Check-In Use Case', () => {
         userLatitude: -23.2805045,
         userLongitude: -45.8944638,
       }),
-    ).rejects.toBeInstanceOf(Error)
+    ).rejects.toBeInstanceOf(MaxNumberOfCheckInsError)
   })
   it('should  be able to check in twice bur in diferents days', async () => {
     vi.setSystemTime(new Date(2025, 7, 18, 8, 0, 0)) // Mock
@@ -101,5 +103,5 @@ it('should not be able to check in on distant gym', async () => {
       userLatitude: -23.2805045,
       userLongitude: -45.8944638,
     }),
-  ).rejects.toBeInstanceOf(Error)
+  ).rejects.toBeInstanceOf(MaxDistanceError)
 })
