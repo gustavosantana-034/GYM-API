@@ -1,6 +1,6 @@
 {
   "name": "@gustavosantana-034/gym-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -21,7 +21,12 @@
   "keywords": [],
   "author": "Gustavo Santana",
   "license": "ISC",
-  "description": "",
+  "description": "Full-featured RESTful API for a GymPass-style application, including user authentication, gym management, check-ins with location validation, and daily usage tracking.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gustavosantana-034/GYM-API.git"
+  },
+  "homepage": "https://github.com/gustavosantana-034/GYM-API#readme",
   "devDependencies": {
     "@rocketseat/eslint-config": "2.2.2",
     "@types/bcryptjs": "2.4.6",
