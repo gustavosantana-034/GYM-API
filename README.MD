@@ -23,7 +23,7 @@ A GymPass-style application for gym check-ins and user management.
 - [x] Users cannot register with an email that is already in use.
 - [x] Users cannot check in more than once per day.
 - [x] Users can only check in if they are within (100m) of the gym.
-- [ ] Check-ins can only be validated after 20 minutes of being created.
+- [x] Check-ins can only be validated after 20 minutes of being created.
 - [ ] Only administrators can validate check-ins.
 - [ ] Only administrators can register new gyms.
 
