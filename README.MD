@@ -13,7 +13,7 @@ A GymPass-style application for gym check-ins and user management.
 - [x] Authenticated users must be able to access their check-in history.
 - [x] Users must be able to search for gyms by name.
 - [x] Users must be able to check in at a gym.
-- [ ] Administrators must be able to validate a user's check-in.
+- [x] Administrators must be able to validate a user's check-in.
 - [x] Administrators must be able to register gyms.
 
 ---
@@ -33,5 +33,5 @@ A GymPass-style application for gym check-ins and user management.
 
 - [x] User passwords must be stored in encrypted format.
 - [x] Application data must be persisted in a PostgreSQL database.
-- [ ] All list endpoints must support pagination with 20 items per page.
+- [x] All list endpoints must support pagination with 20 items per page.
 - [ ] Users must be identified and authenticated using JWT (JSON Web Tokens).

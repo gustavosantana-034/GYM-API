@@ -20,9 +20,6 @@ describe('Register Use Case', () => {
       password: '123456',
     })
 
-    // console.log(user.id)
-    // console.log(typeof user.id)
-
     expect(user.id).toEqual(expect.any(String))
   })
 
