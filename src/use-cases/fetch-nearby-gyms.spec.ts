@@ -33,7 +33,7 @@ describe('Fetch Nearby Gyms Use Case', () => {
       userLongitude: -45.8944638,
     })
 
-    expect(gyms).toHaveLength(1)
+    expect(gyms).toHaveLength(1) // this gym is expected to return because it is close to the user
 
     expect(gyms).toEqual([expect.objectContaining({ title: 'Near GYM' })])
   })
