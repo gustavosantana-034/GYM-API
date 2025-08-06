@@ -11,7 +11,7 @@ A GymPass-style application for gym check-ins and user management.
 - [x] Authenticated users must be able to retrieve their profile.
 - [x] Authenticated users must be able to view the number of check-ins they have made.
 - [x] Authenticated users must be able to access their check-in history.
-- [ ] Users must be able to search for gyms by name.
+- [x] Users must be able to search for gyms by name.
 - [x] Users must be able to check in at a gym.
 - [ ] Administrators must be able to validate a user's check-in.
 - [x] Administrators must be able to register gyms.
