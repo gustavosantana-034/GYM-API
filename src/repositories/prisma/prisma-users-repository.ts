@@ -1,13 +1,20 @@
 import { prisma } from '@/lib/prisma'
-import { Prisma, User } from 'generated/prisma'
+import { Prisma } from 'generated/prisma'
 import { UserRepository } from '../users-repository'
 
 export class PrismaUsersRepository implements UserRepository {
-  finbById(id: string): Promise<User | null> {
-    throw new Error('Method not implemented.')
+  async finbById(id: string) {
+    // sourcery skip: inline-immediately-returned-variable
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+    })
+    return user
   }
 
   async findByEmail(email: string) {
+    // sourcery skip: inline-immediately-returned-variable
     const user = await prisma.user.findUnique({
       where: {
         email,
@@ -17,6 +24,7 @@ export class PrismaUsersRepository implements UserRepository {
   }
 
   async create(data: Prisma.UserCreateInput) {
+    // sourcery skip: inline-immediately-returned-variable
     const user = await prisma.user.create({
       data,
     })
