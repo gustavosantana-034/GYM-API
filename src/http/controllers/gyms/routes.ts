@@ -4,7 +4,7 @@ import { create } from './create-gym.controller'
 import { nearby } from './nearby-gyms.controller'
 import { search } from './search-gyms.controller'
 
-export async function gymsRoutes(app: FastifyInstance) {
+export const gymsRoutes = async (app: FastifyInstance) => {
   app.addHook('onRequest', verifyJwt)
 
   // Create routes
