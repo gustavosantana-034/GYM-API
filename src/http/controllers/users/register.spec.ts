@@ -1,6 +1,7 @@
+import { app } from '@/app'
 import request from 'supertest'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { app } from '../../../app'
+import { randomUUID } from 'node:crypto'
 
 describe('Register Controller', () => {
   beforeAll(async () => {
@@ -11,9 +12,11 @@ describe('Register Controller', () => {
     await app.close()
   })
   it('should be able to register', async () => {
+    const uniqueEmail = `johndoe-${randomUUID()}@example.com`
+
     const response = await request(app.server).post('/users').send({
       name: 'John Doe',
-      email: 'jhondoe@example.com',
+      email: uniqueEmail,
       password: '123456',
     })
 
