@@ -1,7 +1,7 @@
 import { PrismaGymsRepository } from '@/repositories/prisma/prisma-gyms-repository'
 import { CreateGymUseCase } from '../create-gym-use-case'
 
-export function makeCreateymUseCase() {
+export function makeCreateGymUseCase() {
   const gymsRepository = new PrismaGymsRepository()
 
   // sourcery skip: inline-immediately-returned-variable

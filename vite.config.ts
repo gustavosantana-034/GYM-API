@@ -6,9 +6,15 @@ export default defineConfig({
   build: {
     sourcemap: false,
   },
+  server: {
+    watch: {
+      ignored: ['**/generated/**', '**/node_modules/**'],
+    },
+  },
   test: {
     globals: true,
     include: ['src/**/*.spec.ts'],
+    exclude: ['**/node_modules/**', '**/generated/**', '**/dist/**'],
     environment:
       './prisma/vitest-environment-prisma /prisma-test-environment .ts',
     coverage: {

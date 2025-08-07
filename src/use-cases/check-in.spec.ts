@@ -20,7 +20,7 @@ describe('Check-In Use Case', () => {
     await gymsRepository.create({
       id: 'gym-01',
       title: 'Gym Russel',
-      descrption: '',
+      description: '',
       phone: '',
       latitude: -23.2805045,
       longitude: -45.8944638,
@@ -90,7 +90,7 @@ it('should not be able to check in on distant gym', async () => {
   gymsRepository.userItems.push({
     id: 'gym-02',
     title: 'Gym Jeje',
-    descrption: '',
+    description: '',
     phone: '',
     latitude: new Decimal(-23.2134513),
     longitude: new Decimal(-45.6733998),
