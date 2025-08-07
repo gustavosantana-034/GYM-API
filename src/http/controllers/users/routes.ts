@@ -4,7 +4,7 @@ import { authenticate } from './authenticate.controller'
 import { profile } from './profile.controller'
 import { register } from './register.controller'
 
-export async function userRoutes(app: FastifyInstance) {
+export const userRoutes = async (app: FastifyInstance) => {
   // Route to create a new user
   app.post('/users', register)
 
