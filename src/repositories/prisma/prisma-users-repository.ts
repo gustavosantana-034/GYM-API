@@ -3,7 +3,7 @@ import { Prisma } from 'generated/prisma'
 import { UserRepository } from '../users-repository'
 
 export class PrismaUsersRepository implements UserRepository {
-  async finbById(id: string) {
+  async findById(id: string) {
     // sourcery skip: inline-immediately-returned-variable
     const user = await prisma.user.findUnique({
       where: {
