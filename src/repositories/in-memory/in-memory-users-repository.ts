@@ -5,7 +5,7 @@ import { UserRepository } from '../users-repository'
 export class InMemoryUsersRepository implements UserRepository {
   public userItems: User[] = []
 
-  async finbById(id: string) {
+  async findById(id: string) {
     const user = this.userItems.find((item) => item.id === id)
 
     if (!user) {
