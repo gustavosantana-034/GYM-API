@@ -21,8 +21,9 @@ describe('Create Check-In Controller', () => {
     ])
   })
 
-  it('should be able to create check-in', async () => {
-    const { token, email } = await createAndAuthenticateUser(app)
+  it('should be able to validate a check-in', async () => {
+    const { token, email } = await createAndAuthenticateUser(app, true)
+
     const user = await prisma.user.findUniqueOrThrow({ where: { email } })
 
     const gym = await prisma.gym.create({
