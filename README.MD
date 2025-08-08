@@ -24,8 +24,8 @@ A GymPass-style application for gym check-ins and user management.
 - [x] Users cannot check in more than once per day.
 - [x] Users can only check in if they are within (100m) of the gym.
 - [x] Check-ins can only be validated after 20 minutes of being created.
-- [ ] Only administrators can validate check-ins.
-- [ ] Only administrators can register new gyms.
+- [x] Only administrators can validate check-ins.
+- [x] Only administrators can register new gyms.
 
 ---
 
@@ -34,4 +34,4 @@ A GymPass-style application for gym check-ins and user management.
 - [x] User passwords must be stored in encrypted format.
 - [x] Application data must be persisted in a PostgreSQL database.
 - [x] All list endpoints must support pagination with 20 items per page.
-- [ ] Users must be identified and authenticated using JWT (JSON Web Tokens).
+- [x] Users must be identified and authenticated using JWT (JSON Web Tokens).
