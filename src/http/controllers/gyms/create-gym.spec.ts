@@ -4,7 +4,7 @@ import { createAndAuthenticateUser } from '@/utils/tests/create-and-authenticate
 import request from 'supertest'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
-describe('Profile Controller', () => {
+describe('Create Gym Controller', () => {
   beforeAll(async () => {
     await app.ready()
   })
@@ -14,7 +14,6 @@ describe('Profile Controller', () => {
   })
 
   beforeEach(async () => {
-    // Limpa as tabelas antes de cada teste
     await prisma.$transaction([
       prisma.checkIn.deleteMany(),
       prisma.gym.deleteMany(),
@@ -22,19 +21,20 @@ describe('Profile Controller', () => {
     ])
   })
 
-  it('should to be able to get user profile', async () => {
-    const { token, email } = await createAndAuthenticateUser(app)
+  it('should be able to create a gym', async () => {
+    const { token } = await createAndAuthenticateUser(app)
 
-    const profileResponse = await request(app.server)
-      .get('/me')
+    const response = await request(app.server)
+      .post('/gyms')
       .set('Authorization', `Bearer ${token}`)
-      .send()
+      .send({
+        title: 'JavaScript Gym',
+        description: 'A great gym for JavaScript enthusiasts',
+        phone: '11999999999',
+        latitude: -23.55052,
+        longitude: -46.633308,
+      })
 
-    expect(profileResponse.statusCode).toEqual(200)
-    expect(profileResponse.body.user).toEqual(
-      expect.objectContaining({
-        email,
-      }),
-    )
+    expect(response.statusCode).toEqual(201)
   })
 })
