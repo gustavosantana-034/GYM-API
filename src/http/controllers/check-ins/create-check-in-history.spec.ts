@@ -4,7 +4,7 @@ import { createAndAuthenticateUser } from '@/utils/tests/create-and-authenticate
 import request from 'supertest'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
-describe('Create Check-In Controller', () => {
+describe('Check-In History Controller', () => {
   beforeAll(async () => {
     await app.ready()
   })
@@ -21,10 +21,9 @@ describe('Create Check-In Controller', () => {
     ])
   })
 
-  it('should be able to create check-in', async () => {
-    const { token } = await createAndAuthenticateUser(app)
-
-    const user = await prisma.user.findFirstOrThrow()
+  it('should be able to get check-in history', async () => {
+    const { token, email } = await createAndAuthenticateUser(app)
+    const user = await prisma.user.findUniqueOrThrow({ where: { email } })
 
     const gym = await prisma.gym.create({
       data: {
@@ -38,15 +37,8 @@ describe('Create Check-In Controller', () => {
 
     await prisma.checkIn.createMany({
       data: [
-        {
-          gym_id: gym.id,
-          user_id: user.id,
-        },
-
-        {
-          gym_id: gym.id,
-          user_id: user.id,
-        },
+        { gym_id: gym.id, user_id: user.id },
+        { gym_id: gym.id, user_id: user.id },
       ],
     })
 
@@ -57,14 +49,8 @@ describe('Create Check-In Controller', () => {
 
     expect(response.statusCode).toEqual(200)
     expect(response.body.checkIns).toEqual([
-      expect.objectContaining({
-        gym_id: gym.id,
-        user_id: user.id,
-      }),
-      expect.objectContaining({
-        gym_id: gym.id,
-        user_id: user.id,
-      }),
+      expect.objectContaining({ gym_id: gym.id, user_id: user.id }),
+      expect.objectContaining({ gym_id: gym.id, user_id: user.id }),
     ])
   })
 })

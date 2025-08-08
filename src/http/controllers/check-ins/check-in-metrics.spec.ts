@@ -22,9 +22,8 @@ describe('Check-In Metrics Controller', () => {
   })
 
   it('should be able to get the count of check-ins', async () => {
-    const { token } = await createAndAuthenticateUser(app)
-
-    const user = await prisma.user.findFirstOrThrow()
+    const { token, email } = await createAndAuthenticateUser(app)
+    const user = await prisma.user.findUniqueOrThrow({ where: { email } })
 
     const gym = await prisma.gym.create({
       data: {
@@ -38,15 +37,8 @@ describe('Check-In Metrics Controller', () => {
 
     await prisma.checkIn.createMany({
       data: [
-        {
-          gym_id: gym.id,
-          user_id: user.id,
-        },
-
-        {
-          gym_id: gym.id,
-          user_id: user.id,
-        },
+        { gym_id: gym.id, user_id: user.id },
+        { gym_id: gym.id, user_id: user.id },
       ],
     })
 

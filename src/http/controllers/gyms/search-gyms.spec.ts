@@ -22,13 +22,6 @@ describe('Search Gyms Controller', () => {
   })
 
   it('should be able to search a gym', async () => {
-    // Limpeza adicional para garantir que o banco esteja vazio
-    await prisma.$transaction([
-      prisma.checkIn.deleteMany(),
-      prisma.gym.deleteMany(),
-      prisma.user.deleteMany(),
-    ])
-
     const { token } = await createAndAuthenticateUser(app)
 
     await request(app.server)
