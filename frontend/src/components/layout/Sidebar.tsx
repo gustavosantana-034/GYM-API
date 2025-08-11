@@ -9,7 +9,8 @@ import {
   MessageSquare,
   TrendingUp,
   Target,
-  Zap
+  Zap,
+  BarChart3
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -21,28 +22,28 @@ const Sidebar = () => {
       color: 'text-neon-cyan'
     },
     {
-      path: '/workout-planner',
-      icon: Calendar,
-      label: 'Workout Planner',
-      color: 'text-neon-magenta'
-    },
-    {
       path: '/activity-tracker',
       icon: Activity,
       label: 'Activity Tracker',
-      color: 'text-neon-blue'
+      color: 'text-neon-green'
+    },
+    {
+      path: '/analytics',
+      icon: BarChart3,
+      label: 'Analytics',
+      color: 'text-neon-magenta'
     },
     {
       path: '/membership',
       icon: Crown,
       label: 'Membership',
-      color: 'text-neon-purple'
+      color: 'text-neon-yellow'
     },
     {
       path: '/ai-trainer',
       icon: MessageSquare,
       label: 'AI Trainer',
-      color: 'text-neon-green'
+      color: 'text-neon-purple'
     }
   ];
 
@@ -103,7 +104,7 @@ const Sidebar = () => {
       </nav>
 
       {/* Quick Stats */}
-      <div className="p-4 border-t border-dark-border">
+      <div className="p-4 border-t border-dark-border mb-4">
         <div className="cyber-card p-4">
           <h3 className="text-sm font-medium text-gray-300 mb-3">Quick Stats</h3>
           <div className="space-y-3">
@@ -126,7 +127,7 @@ const Sidebar = () => {
       </div>
 
       {/* Bottom Section */}
-      <div className="p-4">
+      <div className="p-4 mt-auto">
         <div className="cyber-card p-4 text-center">
           <div className="w-12 h-12 bg-gradient-to-r from-neon-cyan to-neon-blue rounded-full mx-auto mb-3 flex items-center justify-center">
             <Zap className="w-6 h-6 text-white" />

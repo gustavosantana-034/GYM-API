@@ -9,7 +9,11 @@ import {
   BarChart3,
   Timer,
   Heart,
-  Gauge
+  Gauge,
+  MapPin,
+  Search,
+  CheckCircle,
+  Clock
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -22,40 +26,24 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from 'recharts';
+import { checkInService } from '../services/checkInService';
+import { CheckIn, Gym, CheckInMetrics } from '../types';
+import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const ActivityTracker = () => {
+  const { user } = useAuth();
+  const { showNotification } = useNotification();
   const [isTracking, setIsTracking] = useState(false);
   const [sessionTime, setSessionTime] = useState(0);
   const [currentSession, setCurrentSession] = useState(null);
-  const [sessions, setSessions] = useState([
-    {
-      id: 1,
-      name: 'Morning Cardio',
-      duration: 45,
-      calories: 320,
-      heartRate: 145,
-      date: '2024-01-15',
-      type: 'Cardio'
-    },
-    {
-      id: 2,
-      name: 'Strength Training',
-      duration: 60,
-      calories: 450,
-      heartRate: 130,
-      date: '2024-01-14',
-      type: 'Strength'
-    },
-    {
-      id: 3,
-      name: 'HIIT Session',
-      duration: 30,
-      calories: 380,
-      heartRate: 160,
-      date: '2024-01-13',
-      type: 'HIIT'
-    }
-  ]);
+  const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
+  const [metrics, setMetrics] = useState<CheckInMetrics | null>(null);
+  const [gyms, setGyms] = useState<Gym[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   const [realTimeData, setRealTimeData] = useState([
     { time: 0, heartRate: 80, calories: 0 },
@@ -66,6 +54,11 @@ const ActivityTracker = () => {
     { time: 25, heartRate: 135, calories: 155 },
     { time: 30, heartRate: 125, calories: 180 }
   ]);
+
+  useEffect(() => {
+    loadCheckInData();
+    getUserLocation();
+  }, []);
 
   useEffect(() => {
     let interval;
@@ -88,6 +81,116 @@ const ActivityTracker = () => {
     }
     return () => clearInterval(interval);
   }, [isTracking]);
+
+  const loadCheckInData = async () => {
+    setLoading(true);
+    try {
+      const [checkInsData, metricsData] = await Promise.all([
+        checkInService.getCheckInHistory(),
+        checkInService.getCheckInMetrics()
+      ]);
+      
+      setCheckIns(checkInsData);
+      setMetrics(metricsData);
+    } catch (error) {
+      console.error('Error loading check-in data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getUserLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+        }
+      );
+    }
+  };
+
+  const searchGyms = async (query: string) => {
+    if (query.trim()) {
+      setLoading(true);
+      try {
+        const gymsData = await checkInService.searchGyms(query);
+        setGyms(gymsData);
+      } catch (error) {
+        console.error('Error searching gyms:', error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setGyms([]);
+    }
+  };
+
+  const getNearbyGyms = async () => {
+    if (userLocation) {
+      setLoading(true);
+      try {
+        const gymsData = await checkInService.getNearbyGyms(
+          userLocation.latitude,
+          userLocation.longitude
+        );
+        setGyms(gymsData);
+      } catch (error) {
+        console.error('Error getting nearby gyms:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const createCheckIn = async (gymId: string) => {
+    if (!userLocation) {
+      showNotification({
+        type: 'error',
+        title: 'Location Required',
+        message: 'Location access is required for check-in'
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await checkInService.createCheckIn(
+        gymId,
+        userLocation.latitude,
+        userLocation.longitude
+      );
+      
+      if (result.success) {
+        showNotification({
+          type: 'success',
+          title: 'Check-in Successful!',
+          message: 'Your check-in has been recorded'
+        });
+        loadCheckInData(); // Reload data
+      } else {
+        showNotification({
+          type: 'error',
+          title: 'Check-in Failed',
+          message: result.error || 'Unable to complete check-in'
+        });
+      }
+    } catch (error) {
+      console.error('Error creating check-in:', error);
+      showNotification({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to create check-in'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const startSession = () => {
     setIsTracking(true);
@@ -115,7 +218,6 @@ const ActivityTracker = () => {
         date: new Date().toISOString().split('T')[0],
         endTime: new Date()
       };
-      setSessions([newSession, ...sessions]);
       setCurrentSession(null);
       setSessionTime(0);
     }
@@ -126,6 +228,16 @@ const ActivityTracker = () => {
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const StatCard = ({ icon: Icon, title, value, subtitle, color, delay }) => (
@@ -149,7 +261,7 @@ const ActivityTracker = () => {
   );
 
   return (
-    <div className="space-y-6">
+          <div className="space-y-8">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -161,8 +273,119 @@ const ActivityTracker = () => {
             <Activity className="w-8 h-8 text-neon-blue mr-3" />
             Activity Tracker
           </h1>
-          <p className="text-gray-400 mt-1">Monitor your real-time fitness metrics</p>
+          <p className="text-gray-400 mt-1">Monitor your fitness activities and gym check-ins</p>
         </div>
+      </motion.div>
+
+      {/* Check-in Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          icon={CheckCircle}
+          title="Total Check-ins"
+          value={metrics?.total_check_ins_count || 0}
+          subtitle="all time"
+          color="from-neon-green to-green-500"
+          delay={0.1}
+        />
+        <StatCard
+          icon={Clock}
+          title="This Month"
+          value={metrics?.check_ins_count || 0}
+          subtitle="current month"
+          color="from-neon-cyan to-blue-500"
+          delay={0.2}
+        />
+        <StatCard
+          icon={Timer}
+          title="Session Time"
+          value={formatTime(sessionTime)}
+          subtitle="current session"
+          color="from-orange-500 to-red-500"
+          delay={0.3}
+        />
+        <StatCard
+          icon={Flame}
+          title="Calories Burned"
+          value={Math.floor(sessionTime * 0.1)}
+          subtitle="this session"
+          color="from-red-500 to-pink-500"
+          delay={0.4}
+        />
+      </div>
+
+      {/* Gym Check-in Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="cyber-card p-6"
+      >
+        <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
+          <MapPin className="w-6 h-6 text-neon-cyan mr-2" />
+          Gym Check-in
+        </h2>
+        
+        {/* Search and Location Controls */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search for gyms..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                searchGyms(e.target.value);
+              }}
+              className="w-full pl-10 pr-4 py-3 bg-dark-bg border border-dark-border rounded-lg text-white placeholder-gray-400 focus:border-neon-cyan focus:outline-none"
+            />
+          </div>
+          <button
+            onClick={getNearbyGyms}
+            disabled={!userLocation}
+            className="cyber-button flex items-center space-x-2"
+          >
+            <MapPin className="w-5 h-5" />
+            <span>Nearby Gyms</span>
+          </button>
+        </div>
+
+        {/* Gyms List */}
+        {loading ? (
+          <div className="text-center py-8">
+            <LoadingSpinner size="lg" text="Searching gyms..." />
+          </div>
+        ) : gyms.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {gyms.map((gym) => (
+              <motion.div
+                key={gym.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-dark-bg border border-dark-border rounded-lg p-4 hover:border-neon-cyan transition-colors duration-300"
+              >
+                <h3 className="font-semibold text-white mb-2">{gym.title}</h3>
+                {gym.description && (
+                  <p className="text-gray-400 text-sm mb-3">{gym.description}</p>
+                )}
+                {gym.phone && (
+                  <p className="text-gray-500 text-sm mb-3">📞 {gym.phone}</p>
+                )}
+                <button
+                  onClick={() => createCheckIn(gym.id)}
+                  disabled={loading}
+                  className="cyber-button w-full"
+                >
+                  Check-in
+                </button>
+              </motion.div>
+            ))}
+          </div>
+        ) : searchQuery && (
+          <div className="text-center py-8">
+            <p className="text-gray-400">No gyms found for "{searchQuery}"</p>
+          </div>
+        )}
       </motion.div>
 
       {/* Live Session Controls */}
@@ -237,49 +460,13 @@ const ActivityTracker = () => {
         </motion.div>
       )}
 
-      {/* Real-time Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          icon={Timer}
-          title="Session Time"
-          value={formatTime(sessionTime)}
-          subtitle="current session"
-          color="from-neon-cyan to-blue-500"
-          delay={0.1}
-        />
-        <StatCard
-          icon={Flame}
-          title="Calories Burned"
-          value={Math.floor(sessionTime * 0.1)}
-          subtitle="this session"
-          color="from-orange-500 to-red-500"
-          delay={0.2}
-        />
-        <StatCard
-          icon={Heart}
-          title="Heart Rate"
-          value="145"
-          subtitle="BPM"
-          color="from-red-500 to-pink-500"
-          delay={0.3}
-        />
-        <StatCard
-          icon={Gauge}
-          title="Intensity"
-          value="85%"
-          subtitle="max effort"
-          color="from-neon-magenta to-purple-500"
-          delay={0.4}
-        />
-      </div>
-
       {/* Real-time Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Heart Rate Chart */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.6 }}
           className="cyber-card p-6"
         >
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
@@ -319,7 +506,7 @@ const ActivityTracker = () => {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.7 }}
           className="cyber-card p-6"
         >
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
@@ -356,56 +543,68 @@ const ActivityTracker = () => {
         </motion.div>
       </div>
 
-      {/* Recent Sessions */}
+      {/* Check-in History */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
+        transition={{ delay: 0.8 }}
         className="cyber-card p-6"
       >
         <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
           <BarChart3 className="w-5 h-5 text-neon-green mr-2" />
-          Recent Sessions
+          Check-in History
         </h3>
-        <div className="space-y-4">
-          {sessions.map((session, index) => (
-            <motion.div
-              key={session.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.8 + index * 0.1 }}
-              className="flex items-center justify-between p-4 bg-dark-bg rounded-lg border border-dark-border hover:border-neon-cyan transition-colors duration-300"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-neon-cyan to-neon-blue rounded-lg flex items-center justify-center">
-                  <Activity className="w-6 h-6 text-white" />
+        {loading ? (
+          <div className="text-center py-8">
+            <LoadingSpinner size="lg" text="Loading check-ins..." />
+          </div>
+        ) : checkIns.length > 0 ? (
+          <div className="space-y-4">
+            {checkIns.map((checkIn, index) => (
+              <motion.div
+                key={checkIn.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.9 + index * 0.1 }}
+                className="flex items-center justify-between p-4 bg-dark-bg rounded-lg border border-dark-border hover:border-neon-cyan transition-colors duration-300"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-neon-cyan to-neon-blue rounded-lg flex items-center justify-center">
+                    <MapPin className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-white">{checkIn.gym.title}</h4>
+                    <p className="text-sm text-gray-400">{formatDate(checkIn.created_at)}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-medium text-white">{session.name}</h4>
-                  <p className="text-sm text-gray-400">{session.date}</p>
+                <div className="flex items-center space-x-4">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-400">Status</p>
+                    <div className="flex items-center space-x-1">
+                      {checkIn.validated_at ? (
+                        <>
+                          <CheckCircle className="w-4 h-4 text-neon-green" />
+                          <span className="text-sm font-semibold text-neon-green">Validated</span>
+                        </>
+                      ) : (
+                        <>
+                          <Clock className="w-4 h-4 text-yellow-400" />
+                          <span className="text-sm font-semibold text-yellow-400">Pending</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center space-x-6">
-                <div className="text-center">
-                  <p className="text-sm text-gray-400">Duration</p>
-                  <p className="text-lg font-semibold text-neon-cyan">{session.duration} min</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-400">Calories</p>
-                  <p className="text-lg font-semibold text-orange-400">{session.calories}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-400">Heart Rate</p>
-                  <p className="text-lg font-semibold text-red-400">{session.heartRate} BPM</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-400">Type</p>
-                  <p className="text-lg font-semibold text-neon-magenta">{session.type}</p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <MapPin className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-400">No check-ins yet</p>
+            <p className="text-gray-500 text-sm mt-1">Start by checking into a gym!</p>
+          </div>
+        )}
       </motion.div>
     </div>
   );
