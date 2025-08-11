@@ -1,0 +1,197 @@
+import React from 'react';
+
+// Lucide React icons
+import { 
+  Mail, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  Zap,
+  ArrowRight,
+  AlertCircle,
+  Search,
+  Bell,
+  Settings,
+  User,
+  LogOut,
+  Home,
+  Calendar,
+  Activity,
+  Crown,
+  MessageSquare,
+  TrendingUp,
+  Target,
+  Play,
+  Pause,
+  Square,
+  Clock,
+  Flame,
+  BarChart3,
+  Timer,
+  Heart,
+  Gauge,
+  Plus,
+  Edit,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Star,
+  Sparkles,
+  Send,
+  Bot,
+  Mic,
+  MicOff
+} from 'lucide-react';
+
+// React Icons fallbacks
+import { 
+  MdEmail, 
+  MdLock, 
+  MdVisibility, 
+  MdVisibilityOff, 
+  MdFlashOn,
+  MdArrowForward,
+  MdError,
+  MdSearch,
+  MdNotifications,
+  MdSettings,
+  MdPerson,
+  MdLogout,
+  MdHome,
+  MdCalendarToday,
+  MdFitnessCenter,
+  MdStar,
+  MdChat,
+  MdTrendingUp,
+  MdFlag,
+  MdPlayArrow,
+  MdPause,
+  MdStop,
+  MdAccessTime,
+  MdLocalFireDepartment,
+  MdBarChart,
+  MdTimer,
+  MdFavorite,
+  MdSpeed,
+  MdAdd,
+  MdEdit,
+  MdDelete,
+  MdChevronLeft,
+  MdChevronRight,
+  MdCheck,
+  MdStarBorder,
+  MdAutoAwesome,
+  MdSend,
+  MdSmartToy,
+  MdMic,
+  MdMicOff
+} from 'react-icons/md';
+
+interface IconProps {
+  name: string;
+  size?: number;
+  className?: string;
+  fallback?: boolean;
+  [key: string]: any;
+}
+
+const iconMap: Record<string, React.ComponentType<any>> = {
+  // Lucide React icons
+  mail: Mail,
+  lock: Lock,
+  eye: Eye,
+  eyeOff: EyeOff,
+  zap: Zap,
+  arrowRight: ArrowRight,
+  alertCircle: AlertCircle,
+  search: Search,
+  bell: Bell,
+  settings: Settings,
+  user: User,
+  logOut: LogOut,
+  home: Home,
+  calendar: Calendar,
+  activity: Activity,
+  crown: Crown,
+  messageSquare: MessageSquare,
+  trendingUp: TrendingUp,
+  target: Target,
+  play: Play,
+  pause: Pause,
+  square: Square,
+  clock: Clock,
+  flame: Flame,
+  barChart3: BarChart3,
+  timer: Timer,
+  heart: Heart,
+  gauge: Gauge,
+  plus: Plus,
+  edit: Edit,
+  trash2: Trash2,
+  chevronLeft: ChevronLeft,
+  chevronRight: ChevronRight,
+  check: Check,
+  star: Star,
+  sparkles: Sparkles,
+  send: Send,
+  bot: Bot,
+  mic: Mic,
+  micOff: MicOff,
+  
+  // React Icons fallbacks
+  mailFallback: MdEmail,
+  lockFallback: MdLock,
+  eyeFallback: MdVisibility,
+  eyeOffFallback: MdVisibilityOff,
+  zapFallback: MdFlashOn,
+  arrowRightFallback: MdArrowForward,
+  alertCircleFallback: MdError,
+  searchFallback: MdSearch,
+  bellFallback: MdNotifications,
+  settingsFallback: MdSettings,
+  userFallback: MdPerson,
+  logOutFallback: MdLogout,
+  homeFallback: MdHome,
+  calendarFallback: MdCalendarToday,
+  activityFallback: MdFitnessCenter,
+  crownFallback: MdStar,
+  messageSquareFallback: MdChat,
+  trendingUpFallback: MdTrendingUp,
+  targetFallback: MdFlag,
+  playFallback: MdPlayArrow,
+  pauseFallback: MdPause,
+  squareFallback: MdStop,
+  clockFallback: MdAccessTime,
+  flameFallback: MdLocalFireDepartment,
+  barChart3Fallback: MdBarChart,
+  timerFallback: MdTimer,
+  heartFallback: MdFavorite,
+  gaugeFallback: MdSpeed,
+  plusFallback: MdAdd,
+  editFallback: MdEdit,
+  trash2Fallback: MdDelete,
+  chevronLeftFallback: MdChevronLeft,
+  chevronRightFallback: MdChevronRight,
+  checkFallback: MdCheck,
+  starFallback: MdStarBorder,
+  sparklesFallback: MdAutoAwesome,
+  sendFallback: MdSend,
+  botFallback: MdSmartToy,
+  micFallback: MdMic,
+  micOffFallback: MdMicOff
+};
+
+const Icon: React.FC<IconProps> = ({ name, size = 24, className = "", fallback = false, ...props }) => {
+  const iconName = fallback ? `${name}Fallback` : name;
+  const IconComponent = iconMap[iconName];
+  
+  if (!IconComponent) {
+    console.warn(`Icon "${name}" not found`);
+    return <div className={`w-${size} h-${size} bg-gray-400 rounded`} />;
+  }
+  
+  return <IconComponent size={size} className={className} {...props} />;
+};
+
+export default Icon; 

@@ -15,11 +15,47 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
   try {
     const registerUseCase = makeRegisterUseCase()
 
-    await registerUseCase.execute({
+    const { user } = await registerUseCase.execute({
       name,
       email,
       password,
     })
+
+    const token = await reply.jwtSign(
+      {
+        role: user.role,
+      },
+      {
+        sign: {
+          sub: user.id,
+        },
+      },
+    )
+
+    const refreshToken = await reply.jwtSign(
+      {
+        role: user.role,
+      },
+      {
+        sign: {
+          sub: user.id,
+          expiresIn: '7d', // refresh token expires in 7 days
+        },
+      },
+    )
+
+    return reply
+      .setCookie('refreshToken', refreshToken, {
+        path: '/',
+        secure: true, // use secure cookies in production
+        sameSite: true, // prevent CSRF attacks
+        httpOnly: true, // prevent JavaScript access to the cookie
+      })
+      .status(201)
+      .send({
+        token,
+        refreshToken,
+      })
   } catch (error) {
     if (error instanceof EmailAlreadyExists) {
       return reply.status(409).send({
@@ -29,6 +65,4 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
 
     throw error
   }
-
-  return reply.status(201).send()
 }
