@@ -1,0 +1,25 @@
+name: Run PostgreSQL for Gym API
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: bitnami/postgresql
+        ports:
+          - 5434:5432
+        env:
+          POSTGRESQL_USERNAME: docker
+          POSTGRESQL_PASSWORD: docker
+          POSTGRESQL_DATABASE: gym-api
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      # Add your steps here to run tests or build
+
+
