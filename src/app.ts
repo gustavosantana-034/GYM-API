@@ -1,5 +1,6 @@
 import fastifyCookie from '@fastify/cookie'
 import fastifyJwt from '@fastify/jwt'
+import fastifyCors from '@fastify/cors'
 import fastify from 'fastify'
 import { ZodError } from 'zod'
 import { env } from './env'
@@ -8,6 +9,14 @@ import { gymsRoutes } from './http/controllers/gyms/routes'
 import { userRoutes } from './http/controllers/users/routes'
 
 export const app = fastify()
+
+// Enable CORS
+app.register(fastifyCors, {
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+})
 
 app.register(fastifyJwt, {
   secret: env.JWT_SECRET,

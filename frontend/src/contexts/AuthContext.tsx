@@ -1,6 +1,6 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import avatarImage from '../assets/profile.jpg';
 import { AuthContextType, AuthResponse, User } from '../types';
+import { apiService } from '../services/api';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -36,34 +36,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<AuthResponse> => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await apiService.login({ email, password });
       
-      // Mock user data
-      const userData: User = {
-        id: '1',
-        name: 'Gustavo Santana',
-        email: email,
-        avatar: avatarImage,
-        membership: 'premium',
-        stats: {
-          workoutsCompleted: 127,
-          totalTime: 89.5,
-          currentStreak: 12,
-          weight: 75.2,
-          bodyFat: 12.5
+      if (response.success && response.data) {
+        const { token, refreshToken } = response.data;
+        
+        // Store tokens
+        localStorage.setItem('fitness_token', token);
+        if (refreshToken) {
+          localStorage.setItem('fitness_refresh_token', refreshToken);
         }
-      };
-
-      const token = 'mock_jwt_token_' + Date.now();
-      
-      localStorage.setItem('fitness_token', token);
-      localStorage.setItem('fitness_user', JSON.stringify(userData));
-      
-      setIsAuthenticated(true);
-      setUser(userData);
-      
-      return { success: true };
+        
+        // Get user profile
+        const profileResponse = await apiService.getProfile();
+        if (profileResponse.success && profileResponse.data) {
+          const userData: User = {
+            id: profileResponse.data.id,
+            name: profileResponse.data.name,
+            email: profileResponse.data.email,
+            avatar: undefined, // No default avatar
+            membership: 'premium', // Default membership
+            stats: {
+              workoutsCompleted: 0,
+              totalTime: 0,
+              currentStreak: 0,
+              weight: 70.0,
+              bodyFat: 15.0
+            }
+          };
+          
+          localStorage.setItem('fitness_user', JSON.stringify(userData));
+          setIsAuthenticated(true);
+          setUser(userData);
+        }
+        
+        return { success: true };
+      } else {
+        return { success: false, error: response.error || 'Login failed' };
+      }
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -71,34 +81,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signup = async (name: string, email: string, password: string): Promise<AuthResponse> => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await apiService.register({ name, email, password });
       
-      // Mock user data
-      const userData: User = {
-        id: '1',
-        name: name,
-        email: email,
-        avatar: avatarImage,
-        membership: 'basic',
-        stats: {
-          workoutsCompleted: 0,
-          totalTime: 0,
-          currentStreak: 0,
-          weight: 70.0,
-          bodyFat: 15.0
+      if (response.success && response.data) {
+        const { token, refreshToken } = response.data;
+        
+        // Store tokens
+        localStorage.setItem('fitness_token', token);
+        if (refreshToken) {
+          localStorage.setItem('fitness_refresh_token', refreshToken);
         }
-      };
-
-      const token = 'mock_jwt_token_' + Date.now();
-      
-      localStorage.setItem('fitness_token', token);
-      localStorage.setItem('fitness_user', JSON.stringify(userData));
-      
-      setIsAuthenticated(true);
-      setUser(userData);
-      
-      return { success: true };
+        
+        // Get user profile
+        const profileResponse = await apiService.getProfile();
+        if (profileResponse.success && profileResponse.data) {
+          const userData: User = {
+            id: profileResponse.data.id,
+            name: profileResponse.data.name,
+            email: profileResponse.data.email,
+            avatar: undefined, // No default avatar
+            membership: 'basic', // New users start with basic membership
+            stats: {
+              workoutsCompleted: 0,
+              totalTime: 0,
+              currentStreak: 0,
+              weight: 70.0,
+              bodyFat: 15.0
+            }
+          };
+          
+          localStorage.setItem('fitness_user', JSON.stringify(userData));
+          setIsAuthenticated(true);
+          setUser(userData);
+        }
+        
+        return { success: true };
+      } else {
+        return { success: false, error: response.error || 'Registration failed' };
+      }
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -106,6 +126,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = (): void => {
     localStorage.removeItem('fitness_token');
+    localStorage.removeItem('fitness_refresh_token');
     localStorage.removeItem('fitness_user');
     setIsAuthenticated(false);
     setUser(null);

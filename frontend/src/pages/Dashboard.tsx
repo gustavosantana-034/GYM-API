@@ -1,75 +1,170 @@
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import {
-    Activity,
-    Clock,
-    Flame,
-    Target,
-    TrendingUp,
-    Trophy,
-    Zap
-} from 'lucide-react';
-import { useEffect, useState } from 'react';
-import {
-    Area,
-    AreaChart,
-    CartesianGrid,
-    Cell,
-    Pie,
-    PieChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis
-} from 'recharts';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
+import { checkInService } from '../services/checkInService';
+import Avatar from '../components/ui/Avatar';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import { 
+  Activity, 
+  MapPin, 
+  Clock, 
+  TrendingUp, 
+  Target, 
+  Calendar,
+  CheckCircle,
+  Zap,
+  BarChart3,
+  Heart,
+  Flame,
+  Award,
+  Search,
+  Plus
+} from 'lucide-react';
+import { CheckIn, CheckInMetrics, Gym } from '../types';
 
-const Dashboard = () => {
+const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const { showNotification } = useNotification();
+  const [loading, setLoading] = useState(true);
+  const [checkInMetrics, setCheckInMetrics] = useState<CheckInMetrics | null>(null);
+  const [recentCheckIns, setRecentCheckIns] = useState<CheckIn[]>([]);
+  const [nearbyGyms, setNearbyGyms] = useState<Gym[]>([]);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+    loadDashboardData();
+    getUserLocation();
+    
+    // Add some example notifications for demonstration
+    setTimeout(() => {
+      showNotification({
+        type: 'info',
+        title: 'Welcome to CyberFit!',
+        message: 'Your fitness journey starts here. Check into nearby gyms to get started.',
+        persistent: true
+      });
+    }, 1000);
+  }, [showNotification]);
 
-  // Mock data for charts
-  const weeklyProgress = [
-    { day: 'Mon', workouts: 2, calories: 450, time: 45 },
-    { day: 'Tue', workouts: 1, calories: 320, time: 30 },
-    { day: 'Wed', workouts: 3, calories: 680, time: 65 },
-    { day: 'Thu', workouts: 2, calories: 420, time: 40 },
-    { day: 'Fri', workouts: 1, calories: 280, time: 25 },
-    { day: 'Sat', workouts: 2, calories: 520, time: 50 },
-    { day: 'Sun', workouts: 1, calories: 350, time: 35 }
-  ];
+  const loadDashboardData = async () => {
+    setLoading(true);
+    try {
+      const [metricsData, checkInsData] = await Promise.all([
+        checkInService.getCheckInMetrics(),
+        checkInService.getCheckInHistory()
+      ]);
+      
+      setCheckInMetrics(metricsData);
+      setRecentCheckIns(checkInsData.slice(0, 5)); // Last 5 check-ins
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const bodyMetrics = [
-    { name: 'Muscle', value: 45, color: '#00ffff' },
-    { name: 'Fat', value: 15, color: '#ff00ff' },
-    { name: 'Water', value: 25, color: '#0080ff' },
-    { name: 'Bone', value: 15, color: '#00ff41' }
-  ];
+  const getUserLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+          loadNearbyGyms(position.coords.latitude, position.coords.longitude);
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+        }
+      );
+    }
+  };
 
-  const recentWorkouts = [
-    { name: 'Upper Body Strength', duration: '45 min', calories: 320, date: '2 hours ago' },
-    { name: 'Cardio HIIT', duration: '30 min', calories: 450, date: 'Yesterday' },
-    { name: 'Lower Body Power', duration: '50 min', calories: 380, date: '2 days ago' }
-  ];
+  const loadNearbyGyms = async (lat: number, lng: number) => {
+    try {
+      const gyms = await checkInService.getNearbyGyms(lat, lng);
+      setNearbyGyms(gyms.slice(0, 3)); // Top 3 nearby gyms
+    } catch (error) {
+      console.error('Error loading nearby gyms:', error);
+    }
+  };
 
-  const StatCard = ({ icon: Icon, title, value, subtitle, color, delay }) => (
+  const handleQuickCheckIn = async (gymId: string) => {
+    if (!userLocation) {
+      showNotification({
+        type: 'error',
+        title: 'Location Required',
+        message: 'Please enable location access for check-in'
+      });
+      return;
+    }
+
+    try {
+      const result = await checkInService.createCheckIn(
+        gymId,
+        userLocation.latitude,
+        userLocation.longitude
+      );
+      
+      if (result.success) {
+        showNotification({
+          type: 'success',
+          title: 'Check-in Successful!',
+          message: 'Your check-in has been recorded successfully.'
+        });
+        loadDashboardData(); // Refresh data
+              } else {
+          showNotification({
+            type: 'error',
+            title: 'Check-in Failed',
+            message: result.error || 'Unable to complete check-in'
+          });
+        }
+    } catch (error) {
+      showNotification({
+        type: 'error',
+        title: 'Check-in Error',
+        message: 'An error occurred while processing your check-in'
+      });
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  const StatCard = ({ icon: Icon, title, value, subtitle, color, delay }: {
+    icon: React.ComponentType<{ className?: string }>;
+    title: string;
+    value: string | number;
+    subtitle: string;
+    color: string;
+    delay: number;
+  }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className="cyber-card p-6 hover:glow-cyan transition-all duration-300"
+      className="cyber-card p-6"
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-gray-400 text-sm font-medium">{title}</p>
-          <p className="text-2xl font-bold text-white mt-1">{value}</p>
-          <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
+          <p className="text-sm text-gray-400 mb-1">{title}</p>
+          <p className="text-2xl font-bold text-white">{value}</p>
+          <p className="text-xs text-gray-500">{subtitle}</p>
         </div>
-        <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${color} flex items-center justify-center`}>
+        <div className={`w-12 h-12 bg-gradient-to-r ${color} rounded-lg flex items-center justify-center`}>
           <Icon className="w-6 h-6 text-white" />
         </div>
       </div>
@@ -77,223 +172,206 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Welcome Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="cyber-card p-6"
       >
-        <div>
-          <h1 className="text-3xl font-orbitron font-bold text-white">
-            Welcome back, {user?.name?.split(' ')[0]}!
-          </h1>
-          <p className="text-gray-400 mt-1">
-            {currentTime.toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-2xl font-orbitron font-bold text-neon-cyan">
-            {currentTime.toLocaleTimeString()}
-          </p>
-          <p className="text-xs text-gray-400">Live Time</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Welcome back, {user?.name?.split(' ')[0]}! 👋
+            </h1>
+            <p className="text-gray-400">Ready for your next workout session?</p>
+          </div>
+          <Avatar user={user} size="lg" className="border-4 border-neon-cyan" />
         </div>
       </motion.div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
+          icon={Activity}
+          title="Total Check-ins"
+          value={checkInMetrics?.check_ins_count || 0}
+          subtitle="current month"
+          color="from-neon-cyan to-blue-500"
+          delay={0.2}
+        />
+        <StatCard
           icon={TrendingUp}
           title="Current Streak"
           value={user?.stats?.currentStreak || 0}
           subtitle="days"
-          color="from-neon-green to-green-500"
-          delay={0.1}
-        />
-        <StatCard
-          icon={Target}
-          title="Workouts Completed"
-          value={user?.stats?.workoutsCompleted || 0}
-          subtitle="total"
-          color="from-neon-magenta to-pink-500"
-          delay={0.2}
-        />
-        <StatCard
-          icon={Clock}
-          title="Total Time"
-          value={`${user?.stats?.totalTime || 0}h`}
-          subtitle="this month"
-          color="from-neon-blue to-blue-500"
+          color="from-orange-500 to-red-500"
           delay={0.3}
         />
         <StatCard
-          icon={Flame}
-          title="Calories Burned"
-          value="2,847"
-          subtitle="this week"
-          color="from-orange-500 to-red-500"
+          icon={Target}
+          title="Goal Progress"
+          value="85%"
+          subtitle="monthly target"
+          color="from-purple-500 to-pink-500"
           delay={0.4}
+        />
+        <StatCard
+          icon={Calendar}
+          title="This Week"
+          value={checkInMetrics?.check_ins_count || 0}
+          subtitle="check-ins"
+          color="from-green-500 to-emerald-500"
+          delay={0.5}
         />
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Weekly Progress Chart */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Quick Check-in Section */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
-          className="cyber-card p-6"
+          transition={{ delay: 0.6 }}
+          className="xl:col-span-2"
         >
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-            <Activity className="w-5 h-5 text-neon-cyan mr-2" />
-            Weekly Progress
-          </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={weeklyProgress}>
-              <defs>
-                <linearGradient id="colorCalories" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00ffff" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#00ffff" stopOpacity={0.1}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-              <XAxis dataKey="day" stroke="#666" />
-              <YAxis stroke="#666" />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#1a1a1a', 
-                  border: '1px solid #2a2a2a',
-                  borderRadius: '8px'
-                }}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="calories" 
-                stroke="#00ffff" 
-                fillOpacity={1} 
-                fill="url(#colorCalories)" 
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <div className="cyber-card p-6 h-full">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-semibold text-white flex items-center">
+                <MapPin className="w-6 h-6 text-neon-cyan mr-3" />
+                Quick Check-in
+              </h2>
+              <button className="cyber-button flex items-center space-x-2">
+                <Search className="w-4 h-4" />
+                <span>Find More Gyms</span>
+              </button>
+            </div>
+            
+            {nearbyGyms.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {nearbyGyms.map((gym) => (
+                  <motion.div
+                    key={gym.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-dark-bg border border-dark-border rounded-lg p-4 hover:border-neon-cyan transition-colors duration-300"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-white truncate">{gym.title}</h3>
+                      <div className="w-2 h-2 bg-neon-green rounded-full animate-pulse flex-shrink-0 ml-2"></div>
+                    </div>
+                    {gym.description && (
+                      <p className="text-gray-400 text-sm mb-3 line-clamp-2">{gym.description}</p>
+                    )}
+                    <button
+                      onClick={() => handleQuickCheckIn(gym.id)}
+                      className="cyber-button w-full flex items-center justify-center space-x-2"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Check-in</span>
+                    </button>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <MapPin className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-400">No nearby gyms found</p>
+                <p className="text-gray-500 text-sm mt-1">Enable location access to find gyms near you</p>
+              </div>
+            )}
+          </div>
         </motion.div>
 
-        {/* Body Composition Chart */}
+        {/* Recent Activity */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.6 }}
-          className="cyber-card p-6"
-        >
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-            <Target className="w-5 h-5 text-neon-magenta mr-2" />
-            Body Composition
-          </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={bodyMetrics}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {bodyMetrics.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#1a1a1a', 
-                  border: '1px solid #2a2a2a',
-                  borderRadius: '8px'
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="grid grid-cols-2 gap-4 mt-4">
-            {bodyMetrics.map((metric, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <div 
-                  className="w-3 h-3 rounded-full" 
-                  style={{ backgroundColor: metric.color }}
-                ></div>
-                <span className="text-sm text-gray-300">{metric.name}: {metric.value}%</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Recent Activity & Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Workouts */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          className="cyber-card p-6 lg:col-span-2"
         >
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-            <Trophy className="w-5 h-5 text-neon-green mr-2" />
-            Recent Workouts
-          </h3>
-          <div className="space-y-4">
-            {recentWorkouts.map((workout, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.8 + index * 0.1 }}
-                className="flex items-center justify-between p-4 bg-dark-bg rounded-lg border border-dark-border hover:border-neon-cyan transition-colors duration-300"
-              >
-                <div>
-                  <h4 className="font-medium text-white">{workout.name}</h4>
-                  <p className="text-sm text-gray-400">{workout.date}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-neon-cyan">{workout.duration}</p>
-                  <p className="text-xs text-gray-500">{workout.calories} cal</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Quick Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="cyber-card p-6"
-        >
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-            <Zap className="w-5 h-5 text-neon-blue mr-2" />
-            Quick Actions
-          </h3>
-          <div className="space-y-3">
-            <button className="w-full cyber-button">
-              Start Workout
-            </button>
-            <button className="w-full bg-dark-bg border border-dark-border text-white py-3 px-4 rounded-lg hover:border-neon-magenta transition-colors duration-300">
-              Schedule Session
-            </button>
-            <button className="w-full bg-dark-bg border border-dark-border text-white py-3 px-4 rounded-lg hover:border-neon-green transition-colors duration-300">
-              View Progress
-            </button>
-            <button className="w-full bg-dark-bg border border-dark-border text-white py-3 px-4 rounded-lg hover:border-neon-purple transition-colors duration-300">
-              Chat with AI
-            </button>
+          <div className="cyber-card p-6 h-full">
+            <h2 className="text-xl font-semibold text-white flex items-center mb-6">
+              <Activity className="w-5 h-5 text-neon-green mr-2" />
+              Recent Activity
+            </h2>
+            
+            {recentCheckIns.length > 0 ? (
+              <div className="space-y-4">
+                {recentCheckIns.map((checkIn) => (
+                  <motion.div
+                    key={checkIn.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center space-x-3 p-3 bg-dark-bg rounded-lg border border-dark-border"
+                  >
+                    <div className="w-10 h-10 bg-gradient-to-r from-neon-cyan to-neon-blue rounded-lg flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-white text-sm truncate">{checkIn.gym.title}</h4>
+                      <p className="text-xs text-gray-400">{formatDate(checkIn.created_at)}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      {checkIn.validated_at ? (
+                        <span className="text-xs text-neon-green font-semibold">✓ Validated</span>
+                      ) : (
+                        <span className="text-xs text-yellow-400 font-semibold">⏳ Pending</span>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Activity className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-400 text-sm">No recent check-ins</p>
+                <p className="text-gray-500 text-xs mt-1">Start by checking into a gym!</p>
+              </div>
+            )}
           </div>
         </motion.div>
       </div>
+
+      {/* Quick Actions */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
+        className="cyber-card p-6"
+      >
+        <h2 className="text-xl font-semibold text-white flex items-center mb-6">
+          <Zap className="w-5 h-5 text-neon-blue mr-2" />
+          Quick Actions
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="cyber-button flex items-center justify-center space-x-3 py-4"
+          >
+            <MapPin className="w-5 h-5" />
+            <span>Find Nearby Gyms</span>
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="cyber-button flex items-center justify-center space-x-3 py-4"
+          >
+            <BarChart3 className="w-5 h-5" />
+            <span>View Analytics</span>
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="cyber-button flex items-center justify-center space-x-3 py-4"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Start Workout</span>
+          </motion.button>
+        </div>
+      </motion.div>
     </div>
   );
 };

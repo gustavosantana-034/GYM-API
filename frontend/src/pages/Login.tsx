@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
 // Icons are now using React Icons for better compatibility
 import { 
   MdEmail, 
@@ -24,6 +25,7 @@ const Login = () => {
   const [error, setError] = useState('');
   
   const { login } = useAuth();
+  const { showNotification } = useNotification();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -42,12 +44,27 @@ const Login = () => {
     try {
       const result = await login(formData.email, formData.password);
       if (result.success) {
+        showNotification({
+          type: 'success',
+          title: 'Welcome back!',
+          message: 'Successfully signed in to your account'
+        });
         navigate('/');
       } else {
         setError(result.error || 'Login failed');
+        showNotification({
+          type: 'error',
+          title: 'Login Failed',
+          message: result.error || 'Invalid credentials'
+        });
       }
     } catch (err) {
       setError('An unexpected error occurred');
+      showNotification({
+        type: 'error',
+        title: 'Error',
+        message: 'An unexpected error occurred'
+      });
     } finally {
       setLoading(false);
     }

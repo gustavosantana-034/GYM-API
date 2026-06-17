@@ -3,7 +3,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  avatar: string;
+  avatar?: string;
   membership: 'basic' | 'premium' | 'pro';
   stats: UserStats;
 }
@@ -30,6 +30,54 @@ export interface AuthContextType {
 export interface AuthResponse {
   success: boolean;
   error?: string;
+}
+
+// API Response Types
+export interface LoginResponse {
+  token: string;
+  refreshToken: string;
+}
+
+export interface RegisterResponse {
+  token: string;
+  refreshToken: string;
+}
+
+export interface UserProfileResponse {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface Gym {
+  id: string;
+  title: string;
+  description: string | null;
+  phone: string | null;
+  latitude: number;
+  longitude: number;
+}
+
+export interface CheckIn {
+  id: string;
+  gym_id: string;
+  user_id: string;
+  validated_at: string | null;
+  created_at: string;
+  gym: Gym;
+}
+
+export interface CheckInMetrics {
+  check_ins_count: number;
+  total_check_ins_count: number;
+}
+
+export interface GymsSearchResponse {
+  gyms: Gym[];
+}
+
+export interface CheckInHistoryResponse {
+  checkIns: CheckIn[];
 }
 
 // Workout Types

@@ -12,7 +12,11 @@
     "test:e2e:watch": "vitest src/http/controllers",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
-    "build": "tsup src --out-dir build"
+    "build": "tsup src --out-dir build",
+    "dev:frontend": "cd frontend && npm start",
+    "dev:backend": "tsx watch src/server.ts",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "install:all": "npm install && cd frontend && npm install"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
@@ -36,6 +40,7 @@
     "@types/supertest": "6.0.3",
     "@vitest/coverage-v8": "3.2.4",
     "@vitest/ui": "3.2.4",
+    "concurrently": "8.2.2",
     "eslint": "8.57.1",
     "prisma": "6.13.0",
     "supertest": "7.1.4",
@@ -47,6 +52,7 @@
   },
   "dependencies": {
     "@fastify/cookie": "11.0.2",
+    "@fastify/cors": "11.1.0",
     "@fastify/jwt": "9.1.0",
     "@prisma/client": "6.12.0",
     "bcryptjs": "3.0.2",

@@ -10,9 +10,13 @@ import Membership from './pages/Membership';
 import AITrainer from './pages/AITrainer';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Profile from './pages/Profile';
+import Analytics from './pages/Analytics';
 import IconTest from './components/IconTest';
 import DebugIcons from './components/DebugIcons';
+import NotificationContainer from './components/ui/NotificationContainer';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import { ProtectedRouteProps, AppLayoutProps } from './types';
 import './index.css';
 
@@ -25,9 +29,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 // Main App Layout
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
-    <div className="flex h-screen bg-dark-bg">
+    <div className="flex h-screen bg-dark-bg overflow-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0">
         <Navbar />
         <main className="flex-1 overflow-y-auto p-6 cyber-grid">
           <AnimatePresence mode="wait">
@@ -36,6 +40,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
+              className="h-full"
             >
               {children}
             </motion.div>
@@ -104,6 +109,26 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Profile />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analytics"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Analytics />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 };
@@ -111,13 +136,16 @@ const AppRoutes: React.FC = () => {
 // Main App Component
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <AppRoutes />
-        </div>
-      </Router>
-    </AuthProvider>
+    <NotificationProvider>
+      <AuthProvider>
+        <Router>
+          <div className="App">
+            <AppRoutes />
+            <NotificationContainer />
+          </div>
+        </Router>
+      </AuthProvider>
+    </NotificationProvider>
   );
 };
 
