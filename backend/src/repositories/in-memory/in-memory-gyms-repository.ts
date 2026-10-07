@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto'
 import {
   FindManyNearbyParams,
   GymsRepository,
+  MAX_NEARBY_RESULTS,
   SearchManyParams,
 } from '../gyms-repository'
 
@@ -20,6 +21,10 @@ export class InMemoryGymsRepository implements GymsRepository {
     }
 
     return gym
+  }
+
+  async findManyByOsmIds(osmIds: string[]) {
+    return this.items.filter((gym) => gym.osm_id && osmIds.includes(gym.osm_id))
   }
 
   async findManyNearby({
@@ -40,6 +45,7 @@ export class InMemoryGymsRepository implements GymsRepository {
       }))
       .filter(({ distance }) => distance <= radiusInKm)
       .sort((a, b) => a.distance - b.distance)
+      .slice(0, MAX_NEARBY_RESULTS)
       .map(({ gym }) => gym)
   }
 
@@ -73,6 +79,7 @@ export class InMemoryGymsRepository implements GymsRepository {
         : [],
       latitude: new Prisma.Decimal(data.latitude.toString()),
       longitude: new Prisma.Decimal(data.longitude.toString()),
+      osm_id: data.osm_id ?? null,
       created_at: new Date(),
     }
 

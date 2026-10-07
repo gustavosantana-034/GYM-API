@@ -43,6 +43,7 @@ Every error response has the shape `{ "message": string }`. Validation errors al
 | 409 | Conflict with current state (email taken, already checked in today, already validated) |
 | 422 | A business rule refused the action (too far from the gym, validation window over) |
 | 500 | Unexpected error |
+| 503 | OpenStreetMap (used by the gym import) is unavailable; try again later |
 
 ### Pagination
 
@@ -80,11 +81,13 @@ List endpoints take `page` (integer ≥ 1, default 1) and return up to **20** it
   "modalities": ["WEIGHT_TRAINING", "FUNCTIONAL"],
   "latitude": -23.5610,
   "longitude": -46.6556,
+  "source": "osm",
+  "osm_id": "node/4964023957",
   "created_at": "2025-10-07T18:43:00.000Z"
 }
 ```
 
-`description`, `phone` and `address` may be `null`. `latitude` and `longitude` are numbers.
+`description`, `phone` and `address` may be `null`. `latitude` and `longitude` are numbers. `source` is `osm` for gyms imported from OpenStreetMap (show the attribution "© OpenStreetMap contributors" and link to `https://www.openstreetmap.org/<osm_id>`) and `manual` for gyms created by an admin.
 
 ### CheckIn
 
@@ -175,7 +178,7 @@ Search gyms by title or address (case-insensitive), optionally filtered by modal
 
 ### GET /gyms/nearby
 
-Gyms within a radius of a coordinate, closest first (at most 100).
+Gyms within a radius of a coordinate, closest first (at most 500).
 
 - **Auth**: User
 - **Query params**
@@ -217,6 +220,19 @@ Gyms within a radius of a coordinate, closest first (at most 100).
 
 - **Response 201**: `{ "gym": Gym }`
 - **Errors**: 400, 401, 403
+
+### POST /gyms/import
+
+Import the **real** gyms around a point from OpenStreetMap (gyms, fitness centres, studios, boxes, swimming, martial arts and dance venues). It is idempotent: a gym imported before (same `osm_id`) is updated, never duplicated. Modalities are read from the OSM `sport` tag and the gym name; a plain fitness centre counts as weight training.
+
+The public Overpass servers can be slow, so the call may take a few minutes (the server retries other mirrors).
+
+- **Auth**: Admin
+- **Body**: `{ "latitude": -23.5614, "longitude": -46.6559, "radius": 10 }`. `radius` is in km, > 0 and ≤ 20, default 10.
+- **Response 200**: `{ "found": 242, "created": 242, "updated": 0 }`
+- **Errors**: 400, 401, 403, 503 (OpenStreetMap unavailable after retries)
+
+Command-line equivalent: `npm run gyms:import -- --lat -23.5614 --lng -46.6559 [--radius 10] [--dry-run]`.
 
 ### PUT /gyms/:gymId
 

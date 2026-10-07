@@ -5,6 +5,10 @@
  *
  *   npm run db:seed            # create users and gyms (skips existing gyms)
  *   npm run db:seed -- --reset # delete every gym and check-in first
+ *   npm run db:seed -- --users-only          # only the two accounts
+ *   npm run db:seed -- --reset --users-only  # remove all gyms, keep accounts
+ *
+ * To use real gyms instead of these samples, see `npm run gyms:import`.
  */
 import { Modality, PrismaClient } from '@prisma/client'
 import { hash } from 'bcryptjs'
@@ -183,6 +187,11 @@ async function seedGyms() {
   if (process.argv.includes('--reset')) {
     await prisma.checkIn.deleteMany()
     await prisma.gym.deleteMany()
+  }
+
+  if (process.argv.includes('--users-only')) {
+    console.log('✔ Gyms: skipped (--users-only)')
+    return
   }
 
   const existingTitles = new Set(

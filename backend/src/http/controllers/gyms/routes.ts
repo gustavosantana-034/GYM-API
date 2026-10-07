@@ -3,6 +3,7 @@ import { FastifyInstance } from 'fastify'
 import { verifyJwt } from '../../middlewares/verify-jwt'
 import { create } from './create-gym.controller'
 import { show } from './get-gym.controller'
+import { importGyms } from './import-gyms.controller'
 import { nearby } from './nearby-gyms.controller'
 import { search } from './search-gyms.controller'
 import { update } from './update-gym.controller'
@@ -16,5 +17,6 @@ export const gymsRoutes = async (app: FastifyInstance) => {
 
   /** Admin only */
   app.post('/gyms', { onRequest: [verifyUserRole('ADMIN')] }, create)
+  app.post('/gyms/import', { onRequest: [verifyUserRole('ADMIN')] }, importGyms)
   app.put('/gyms/:gymId', { onRequest: [verifyUserRole('ADMIN')] }, update)
 }

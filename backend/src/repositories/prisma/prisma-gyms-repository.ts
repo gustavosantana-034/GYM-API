@@ -3,6 +3,7 @@ import { Gym, Prisma } from '@prisma/client'
 import {
   FindManyNearbyParams,
   GymsRepository,
+  MAX_NEARBY_RESULTS,
   SearchManyParams,
 } from '../gyms-repository'
 
@@ -14,6 +15,14 @@ export class PrismaGymsRepository implements GymsRepository {
       where: {
         id,
       },
+    })
+  }
+
+  async findManyByOsmIds(osmIds: string[]) {
+    if (osmIds.length === 0) return []
+
+    return prisma.gym.findMany({
+      where: { osm_id: { in: osmIds } },
     })
   }
 
@@ -36,7 +45,7 @@ export class PrismaGymsRepository implements GymsRepository {
       ) AS gyms_with_distance
       WHERE distance <= ${radiusInKm}
       ORDER BY distance
-      LIMIT 100
+      LIMIT ${MAX_NEARBY_RESULTS}
     `
 
     if (nearby.length === 0) {

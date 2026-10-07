@@ -6,8 +6,8 @@
     "dev": "tsx watch src/server.ts",
     "start": "node build/server.js",
     "build": "tsup src/server.ts --out-dir build --format esm --clean",
-    "lint": "eslint src prisma --ext .ts",
-    "lint:fix": "eslint src prisma --ext .ts --fix",
+    "lint": "eslint src prisma scripts --ext .ts",
+    "lint:fix": "eslint src prisma scripts --ext .ts --fix",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --project unit",
     "test:watch": "vitest --project unit",
@@ -18,7 +18,8 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "gyms:import": "tsx scripts/import-gyms.ts"
   },
   "engines": {
     "node": ">=22"

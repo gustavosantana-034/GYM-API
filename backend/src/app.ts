@@ -11,8 +11,19 @@ import { errorHandler } from './http/error-handler'
 
 export const app = fastify()
 
+// Any localhost port is fine while developing (Vite may pick another port);
+// production only accepts the origins listed in CORS_ORIGIN.
+const localhostOrigin = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/
+
 app.register(fastifyCors, {
-  origin: env.CORS_ORIGIN,
+  origin: (origin, callback) => {
+    const isAllowed =
+      !origin ||
+      env.CORS_ORIGIN.includes(origin) ||
+      (env.NODE_ENV !== 'production' && localhostOrigin.test(origin))
+
+    callback(null, isAllowed)
+  },
   credentials: true, // the refresh token travels in a cookie
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],

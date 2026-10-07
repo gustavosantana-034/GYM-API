@@ -59,6 +59,8 @@ model Gym {
   modalities  Modality[] @default([])
   latitude    Decimal
   longitude   Decimal
+  /// OpenStreetMap element ("node/123") for gyms imported from OSM
+  osm_id      String?    @unique
   created_at  DateTime   @default(now())
   checkIns    CheckIn[]
 

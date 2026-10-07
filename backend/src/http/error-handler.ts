@@ -5,6 +5,7 @@ import { InvalidCredentialsError } from '@/use-cases/errors/invalid-credentials-
 import { LateCheckInValidationError } from '@/use-cases/errors/late-check-in-validation-error'
 import { MaxDistanceError } from '@/use-cases/errors/max-distance-error'
 import { MaxNumberOfCheckInsError } from '@/use-cases/errors/max-number-of-check-ins-error'
+import { PlacesProviderUnavailableError } from '@/use-cases/errors/places-provider-unavailable-error'
 import { ResourceNotFoundError } from '@/use-cases/errors/resource-not-found-error'
 import { FastifyError, FastifyReply, FastifyRequest } from 'fastify'
 import { ZodError, z } from 'zod'
@@ -23,6 +24,7 @@ const domainErrorStatus = new Map<DomainErrorClass, number>([
   [CheckInAlreadyValidatedError, 409],
   [MaxDistanceError, 422],
   [LateCheckInValidationError, 422],
+  [PlacesProviderUnavailableError, 503],
 ])
 
 function getDomainErrorStatus(error: Error) {
