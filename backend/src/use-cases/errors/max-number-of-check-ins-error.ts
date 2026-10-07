@@ -2,6 +2,6 @@ import { CustomError } from 'ts-custom-error'
 
 export class MaxNumberOfCheckInsError extends CustomError {
   constructor() {
-    super('Max number of check-ins reached!')
+    super('You have already checked in today.')
   }
 }

@@ -34,7 +34,9 @@ describe('Profile Controller', () => {
     expect(profileResponse.body.user).toEqual(
       expect.objectContaining({
         email,
+        role: 'MEMBER',
       }),
     )
+    expect(profileResponse.body.user).not.toHaveProperty('password_hash')
   })
 })

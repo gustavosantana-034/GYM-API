@@ -5,36 +5,50 @@ import { FetchNearbyGymsUseCase } from './fetch-nearby-gyms'
 let gymsRepository: InMemoryGymsRepository
 let sut: FetchNearbyGymsUseCase
 
+const user = { userLatitude: -23.2805045, userLongitude: -45.8944638 }
+
 describe('Fetch Nearby Gyms Use Case', () => {
   beforeEach(async () => {
     gymsRepository = new InMemoryGymsRepository()
     sut = new FetchNearbyGymsUseCase(gymsRepository)
-  })
-
-  it('should be able to fetch nearby gyms', async () => {
-    await gymsRepository.create({
-      title: 'Near GYM',
-      phone: null,
-      description: null,
-      latitude: -23.28795,
-      longitude: -45.89437,
-    })
 
     await gymsRepository.create({
-      title: 'Far GYM',
-      phone: null,
-      description: null,
+      title: 'Far GYM', // ~60 km away
       latitude: -23.0642476,
       longitude: -46.4182858,
     })
 
-    const { gyms } = await sut.execute({
-      userLatitude: -23.2805045,
-      userLongitude: -45.8944638,
+    await gymsRepository.create({
+      title: 'Medium GYM', // ~4.3 km away
+      latitude: -23.2422,
+      longitude: -45.8992,
     })
 
-    expect(gyms).toHaveLength(1) // this gym is expected to return because it is close to the user
+    await gymsRepository.create({
+      title: 'Near GYM', // ~830 m away
+      latitude: -23.28795,
+      longitude: -45.89437,
+    })
+  })
+
+  it('should fetch gyms within 10 km by default, closest first', async () => {
+    const { gyms } = await sut.execute(user)
+
+    expect(gyms).toEqual([
+      expect.objectContaining({ title: 'Near GYM' }),
+      expect.objectContaining({ title: 'Medium GYM' }),
+    ])
+  })
+
+  it('should respect a custom search radius', async () => {
+    const { gyms } = await sut.execute({ ...user, radiusInKm: 1 })
 
     expect(gyms).toEqual([expect.objectContaining({ title: 'Near GYM' })])
+  })
+
+  it('should cap the search radius at 50 km', async () => {
+    const { gyms } = await sut.execute({ ...user, radiusInKm: 500 })
+
+    expect(gyms).toHaveLength(2)
   })
 })

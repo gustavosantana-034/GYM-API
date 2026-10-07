@@ -1,5 +1,5 @@
 import { app } from '@/app'
-import { randomUUID } from 'node:crypto'
+import { createAndAuthenticateUser } from '@/utils/tests/create-and-authenticate-user'
 import request from 'supertest'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
@@ -12,20 +12,8 @@ describe('Refresh Token Controller', () => {
     await app.close()
   })
 
-  it('should to be able to refresh a token', async () => {
-    const uniqueEmail = `johndoe-${randomUUID()}@example.com`
-
-    await request(app.server).post('/users').send({
-      name: 'Jhon Doe',
-      email: uniqueEmail,
-      password: '123456',
-    })
-    const authResponse = await request(app.server).post('/sessions').send({
-      email: uniqueEmail,
-      password: '123456',
-    })
-
-    const cookies = authResponse.get('Set-Cookie') ?? []
+  it('should be able to refresh a token', async () => {
+    const { cookies } = await createAndAuthenticateUser(app)
 
     const response = await request(app.server)
       .patch('/token/refresh')
@@ -36,9 +24,30 @@ describe('Refresh Token Controller', () => {
     expect(response.body).toEqual({
       token: expect.any(String),
     })
-
     expect(response.get('Set-Cookie')).toEqual([
       expect.stringContaining('refreshToken='),
     ])
+  })
+
+  it('should keep the admin role in the refreshed access token', async () => {
+    const { cookies } = await createAndAuthenticateUser(app, true)
+
+    const refreshResponse = await request(app.server)
+      .patch('/token/refresh')
+      .set('Cookie', cookies)
+      .send()
+
+    const response = await request(app.server)
+      .post('/gyms')
+      .set('Authorization', `Bearer ${refreshResponse.body.token}`)
+      .send({ title: 'Admin Gym', latitude: -23.5, longitude: -46.6 })
+
+    expect(response.statusCode).toEqual(201)
+  })
+
+  it('should answer 401 without a refresh token cookie', async () => {
+    const response = await request(app.server).patch('/token/refresh').send()
+
+    expect(response.statusCode).toEqual(401)
   })
 })

@@ -1,21 +1,16 @@
 import { FastifyInstance } from 'fastify'
 import { verifyJwt } from '../../middlewares/verify-jwt'
 import { authenticate } from './authenticate.controller'
+import { logout } from './logout.controller'
 import { profile } from './profile.controller'
-import { refresh } from './refresh'
+import { refresh } from './refresh.controller'
 import { register } from './register.controller'
 
 export const userRoutes = async (app: FastifyInstance) => {
-  // Route to create a new user
   app.post('/users', register)
-
-  // Route to make a authenticate
   app.post('/sessions', authenticate)
-
-  // Route for take a token and get user profile
+  app.post('/sessions/logout', logout)
   app.patch('/token/refresh', refresh)
-
-  // Route to get the profile of the authenticated user
 
   /** Authenticated */
   app.get('/me', { onRequest: [verifyJwt] }, profile)

@@ -1,53 +1,92 @@
 import { prisma } from '@/lib/prisma'
 import { Gym, Prisma } from '@prisma/client'
-import { FindManyNearbyParams, GymsRepository } from '../gyms-repository'
+import {
+  FindManyNearbyParams,
+  GymsRepository,
+  SearchManyParams,
+} from '../gyms-repository'
+
+const PAGE_SIZE = 20
 
 export class PrismaGymsRepository implements GymsRepository {
-  async finbById(id: string) {
-    // sourcery skip: inline-immediately-returned-variable
-    const gym = await prisma.gym.findUnique({
+  async findById(id: string) {
+    return prisma.gym.findUnique({
       where: {
         id,
       },
     })
-
-    return gym
   }
 
-  async findManyNearby({ latitude, longitude }: FindManyNearbyParams) {
-    // sourcery skip: inline-immediately-returned-variable
-    const gyms = await prisma.$queryRaw<Gym[]>`
-    
-         SELECT * from gyms
-         WHERE ( 6371 * acos( cos( radians(${latitude}) ) * cos( radians( latitude ) ) * cos( radians( longitude ) 
-        - radians(${longitude}) ) + sin( radians(${latitude}) ) * sin( radians( latitude ) ) ) ) <= 10
-    
+  async findManyNearby({
+    latitude,
+    longitude,
+    radiusInKm,
+  }: FindManyNearbyParams) {
+    // Spherical law of cosines. The acos argument is clamped to [-1, 1]
+    // because floating point error can push it slightly above 1 when the
+    // user stands exactly on the gym coordinates, which makes Postgres throw.
+    const nearby = await prisma.$queryRaw<{ id: string }[]>`
+      SELECT id FROM (
+        SELECT id, 6371 * acos(LEAST(1, GREATEST(-1,
+          cos(radians(${latitude})) * cos(radians(latitude)) *
+          cos(radians(longitude) - radians(${longitude})) +
+          sin(radians(${latitude})) * sin(radians(latitude))
+        ))) AS distance
+        FROM gyms
+      ) AS gyms_with_distance
+      WHERE distance <= ${radiusInKm}
+      ORDER BY distance
+      LIMIT 100
     `
 
-    return gyms
-  }
+    if (nearby.length === 0) {
+      return []
+    }
 
-  async searchMany(query: string, page: number) {
-    // sourcery skip: inline-immediately-returned-variable
+    const ids = nearby.map((gym) => gym.id)
+
     const gyms = await prisma.gym.findMany({
-      where: {
-        title: {
-          contains: query,
-        },
-      },
-      take: 20,
-      skip: (page - 1) * 20,
+      where: { id: { in: ids } },
     })
 
-    return gyms
+    // Restore the distance ordering from the raw query
+    return gyms.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id))
+  }
+
+  async searchMany({ query, modality, page }: SearchManyParams) {
+    const where: Prisma.GymWhereInput = {}
+
+    if (query) {
+      where.OR = [
+        { title: { contains: query, mode: 'insensitive' } },
+        { address: { contains: query, mode: 'insensitive' } },
+      ]
+    }
+
+    if (modality) {
+      where.modalities = { has: modality }
+    }
+
+    return prisma.gym.findMany({
+      where,
+      orderBy: { title: 'asc' },
+      take: PAGE_SIZE,
+      skip: (page - 1) * PAGE_SIZE,
+    })
   }
 
   async create(data: Prisma.GymCreateInput) {
-    // sourcery skip: inline-immediately-returned-variable
-    const gym = await prisma.gym.create({
+    return prisma.gym.create({
       data,
     })
+  }
 
-    return gym
+  async save(gym: Gym) {
+    const { id, ...data } = gym
+
+    return prisma.gym.update({
+      where: { id },
+      data,
+    })
   }
 }

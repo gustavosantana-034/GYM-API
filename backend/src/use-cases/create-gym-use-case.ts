@@ -1,10 +1,12 @@
-import { Gym } from '@prisma/client'
+import { Gym, Modality } from '@prisma/client'
 import { GymsRepository } from '../repositories/gyms-repository'
 
 interface CreateGymUseCaseRequest {
   title: string
   description: string | null
   phone: string | null
+  address?: string | null
+  modalities?: Modality[]
   latitude: number
   longitude: number
 }
@@ -20,6 +22,8 @@ export class CreateGymUseCase {
     title,
     description,
     phone,
+    address = null,
+    modalities = [],
     latitude,
     longitude,
   }: CreateGymUseCaseRequest): Promise<CreateGymUseCaseResponse> {
@@ -27,6 +31,8 @@ export class CreateGymUseCase {
       title,
       description,
       phone,
+      address,
+      modalities,
       latitude,
       longitude,
     })

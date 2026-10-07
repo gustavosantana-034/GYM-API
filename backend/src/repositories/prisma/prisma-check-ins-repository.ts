@@ -1,81 +1,103 @@
 import { prisma } from '@/lib/prisma'
-import dayjs from 'dayjs'
+import { getDayBoundaries } from '@/utils/get-day-boundaries'
 import { CheckIn, Prisma } from '@prisma/client'
-import { CheckInsRepository } from '../check-ins-repository'
+import {
+  CheckInsRepository,
+  FindManyCheckInsParams,
+} from '../check-ins-repository'
 
-export class PrimsaCheckInsRepository implements CheckInsRepository {
+const PAGE_SIZE = 20
+
+const gymSummary = { select: { id: true, title: true, address: true } }
+const userSummary = { select: { id: true, name: true, email: true } }
+
+export class PrismaCheckInsRepository implements CheckInsRepository {
   async findById(id: string) {
-    // sourcery skip: inline-immediately-returned-variable
-    const checkIn = await prisma.checkIn.findUnique({
+    return prisma.checkIn.findUnique({
       where: {
         id,
       },
     })
-    return checkIn
   }
 
-  async create(data: Prisma.CheckInUncheckedCreateInput): Promise<CheckIn> {
-    // sourcery skip: inline-immediately-returned-variable
-    const checkIn = await prisma.checkIn.create({
+  async create(data: Prisma.CheckInUncheckedCreateInput) {
+    return prisma.checkIn.create({
       data,
     })
-
-    return checkIn
   }
 
-  async save(data: CheckIn) {
-    // sourcery skip: inline-immediately-returned-variable
-    const checkIn = await prisma.checkIn.update({
+  async save(checkIn: CheckIn) {
+    return prisma.checkIn.update({
       where: {
-        id: data.id,
+        id: checkIn.id,
       },
-
-      data,
+      data: {
+        validated_at: checkIn.validated_at,
+      },
     })
-
-    return checkIn
   }
 
   async findManyByUserId(userId: string, page: number) {
-    // sourcery skip: inline-immediately-returned-variable
-    const checkIns = await prisma.checkIn.findMany({
+    return prisma.checkIn.findMany({
       where: {
         user_id: userId,
       },
-
-      take: 20,
-      skip: (page - 1) * 20,
+      include: { gym: gymSummary },
+      orderBy: { created_at: 'desc' },
+      take: PAGE_SIZE,
+      skip: (page - 1) * PAGE_SIZE,
     })
+  }
 
-    return checkIns
+  async findMany({ status, page }: FindManyCheckInsParams) {
+    const where: Prisma.CheckInWhereInput = {}
+
+    if (status === 'pending') {
+      where.validated_at = null
+    }
+
+    if (status === 'validated') {
+      where.validated_at = { not: null }
+    }
+
+    return prisma.checkIn.findMany({
+      where,
+      include: { gym: gymSummary, user: userSummary },
+      orderBy: { created_at: 'desc' },
+      take: PAGE_SIZE,
+      skip: (page - 1) * PAGE_SIZE,
+    })
   }
 
   async findByUserIdOnDate(userId: string, date: Date) {
-    const startOfTheDay = dayjs(date).startOf('date')
-    const endOfTheDay = dayjs(date).endOf('date')
+    const { startOfDay, endOfDay } = getDayBoundaries(date)
 
-    // sourcery skip: inline-immediately-returned-variable
-    const checkIn = await prisma.checkIn.findFirst({
+    return prisma.checkIn.findFirst({
       where: {
         user_id: userId,
         created_at: {
-          gte: startOfTheDay.toDate(),
-          lte: endOfTheDay.toDate(),
+          gte: startOfDay,
+          lte: endOfDay,
         },
       },
     })
-
-    return checkIn
   }
 
   async countByUserId(userId: string) {
-    // sourcery skip: inline-immediately-returned-variable
-    const count = await prisma.checkIn.count({
+    return prisma.checkIn.count({
       where: {
         user_id: userId,
       },
     })
+  }
 
-    return count
+  async findDatesByUserId(userId: string) {
+    const checkIns = await prisma.checkIn.findMany({
+      where: { user_id: userId },
+      select: { created_at: true },
+      orderBy: { created_at: 'asc' },
+    })
+
+    return checkIns.map((checkIn) => checkIn.created_at)
   }
 }

@@ -1,7 +1,9 @@
 import { UserRepository } from '@/repositories/users-repository'
-import { hash } from 'bcryptjs'
 import { User } from '@prisma/client'
+import { hash } from 'bcryptjs'
 import { EmailAlreadyExists } from './errors/email-already-exists-error'
+
+export const PASSWORD_HASH_ROUNDS = 10
 
 interface RegisterUseCaseRequest {
   name: string
@@ -13,10 +15,6 @@ interface RegisterUseCaseResponse {
   user: User
 }
 
-// SOLID
-
-// D - Dependecy Inversion Principle
-
 export class RegisterUseCase {
   constructor(private usersRepository: UserRepository) {}
 
@@ -25,18 +23,21 @@ export class RegisterUseCase {
     email,
     password,
   }: RegisterUseCaseRequest): Promise<RegisterUseCaseResponse> {
-    const password_hash = await hash(password, 6)
+    const normalizedEmail = email.trim().toLowerCase()
 
-    // Search for user with the same email
-    const userWithTheSameEmail = await this.usersRepository.findByEmail(email)
+    // Checked before hashing so a duplicate does not pay the bcrypt cost
+    const userWithTheSameEmail =
+      await this.usersRepository.findByEmail(normalizedEmail)
 
     if (userWithTheSameEmail) {
       throw new EmailAlreadyExists()
     }
 
+    const password_hash = await hash(password, PASSWORD_HASH_ROUNDS)
+
     const user = await this.usersRepository.create({
-      name,
-      email,
+      name: name.trim(),
+      email: normalizedEmail,
       password_hash,
     })
 

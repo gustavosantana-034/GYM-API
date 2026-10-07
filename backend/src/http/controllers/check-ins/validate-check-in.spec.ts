@@ -4,7 +4,7 @@ import { createAndAuthenticateUser } from '@/utils/tests/create-and-authenticate
 import request from 'supertest'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
-describe('Create Check-In Controller', () => {
+describe('Validate Check-In Controller', () => {
   beforeAll(async () => {
     await app.ready()
   })
@@ -57,5 +57,46 @@ describe('Create Check-In Controller', () => {
     })
 
     expect(checkIn.validated_at).toEqual(expect.any(Date))
+  })
+  it('should answer 422 when the validation window has passed', async () => {
+    const { token, userId } = await createAndAuthenticateUser(app, true)
+
+    const gym = await prisma.gym.create({
+      data: { title: 'Gym', latitude: -23.55052, longitude: -46.633308 },
+    })
+
+    const checkIn = await prisma.checkIn.create({
+      data: {
+        gym_id: gym.id,
+        user_id: userId,
+        created_at: new Date(Date.now() - 1000 * 60 * 21),
+      },
+    })
+
+    const response = await request(app.server)
+      .patch(`/check-ins/${checkIn.id}/validate`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(response.statusCode).toEqual(422)
+  })
+
+  it('should answer 409 when the check-in was already validated', async () => {
+    const { token, userId } = await createAndAuthenticateUser(app, true)
+
+    const gym = await prisma.gym.create({
+      data: { title: 'Gym', latitude: -23.55052, longitude: -46.633308 },
+    })
+
+    const checkIn = await prisma.checkIn.create({
+      data: { gym_id: gym.id, user_id: userId, validated_at: new Date() },
+    })
+
+    const response = await request(app.server)
+      .patch(`/check-ins/${checkIn.id}/validate`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(response.statusCode).toEqual(409)
   })
 })

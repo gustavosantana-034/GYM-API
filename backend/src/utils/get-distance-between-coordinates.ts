@@ -3,6 +3,7 @@ export interface Coordinate {
   longitude: number
 }
 
+/** Great-circle distance in kilometers. */
 export function getDistanceBetweenCoordinates(
   from: Coordinate,
   to: Coordinate,
@@ -21,9 +22,8 @@ export function getDistanceBetweenCoordinates(
     Math.sin(fromRadian) * Math.sin(toRadian) +
     Math.cos(fromRadian) * Math.cos(toRadian) * Math.cos(radTheta)
 
-  if (dist > 1) {
-    dist = 1
-  }
+  // Floating point error can leave the value slightly outside acos' domain
+  dist = Math.min(1, Math.max(-1, dist))
 
   dist = Math.acos(dist)
   dist = (dist * 180) / Math.PI

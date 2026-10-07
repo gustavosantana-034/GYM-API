@@ -10,7 +10,7 @@ describe('Create Gym Use Case', () => {
     sut = new CreateGymUseCase(gymsRepository)
   })
 
-  it('should be to create gym', async () => {
+  it('should be able to create a gym', async () => {
     const { gym } = await sut.execute({
       title: 'Iron Gym',
       phone: null,
@@ -20,5 +20,23 @@ describe('Create Gym Use Case', () => {
     })
 
     expect(gym.id).toEqual(expect.any(String))
+  })
+  it('should store the address and modalities of the gym', async () => {
+    const { gym } = await sut.execute({
+      title: 'Iron Gym',
+      phone: null,
+      description: null,
+      address: 'Rua Exemplo, 100',
+      modalities: ['WEIGHT_TRAINING', 'CROSSFIT'],
+      latitude: -23.2134513,
+      longitude: -45.6733998,
+    })
+
+    expect(gym).toEqual(
+      expect.objectContaining({
+        address: 'Rua Exemplo, 100',
+        modalities: ['WEIGHT_TRAINING', 'CROSSFIT'],
+      }),
+    )
   })
 })

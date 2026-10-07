@@ -7,6 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Modality {
+  WEIGHT_TRAINING
+  CROSSFIT
+  FUNCTIONAL
+  YOGA
+  PILATES
+  SWIMMING
+  MARTIAL_ARTS
+  DANCE
+}
+
 enum Role {
   ADMIN
   MEMBER
@@ -40,12 +51,15 @@ model CheckIn {
 }
 
 model Gym {
-  id          String    @id @default(uuid())
+  id          String     @id @default(uuid())
   title       String
   description String?
   phone       String?
+  address     String?
+  modalities  Modality[] @default([])
   latitude    Decimal
   longitude   Decimal
+  created_at  DateTime   @default(now())
   checkIns    CheckIn[]
 
   @@map("gyms")

@@ -49,7 +49,11 @@ describe('Check-In History Controller', () => {
 
     expect(response.statusCode).toEqual(200)
     expect(response.body.checkIns).toEqual([
-      expect.objectContaining({ gym_id: gym.id, user_id: user.id }),
+      expect.objectContaining({
+        gym_id: gym.id,
+        user_id: user.id,
+        gym: { id: gym.id, title: 'JavaScript Gym', address: null },
+      }),
       expect.objectContaining({ gym_id: gym.id, user_id: user.id }),
     ])
   })

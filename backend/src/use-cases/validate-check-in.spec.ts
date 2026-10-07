@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { InMemoryCheckInsRepository } from '../repositories/in-memory/in-memory-check-ins-repository'
+import { CheckInAlreadyValidatedError } from './errors/check-in-already-validated-error'
+import { LateCheckInValidationError } from './errors/late-check-in-validation-error'
 import { ResourceNotFoundError } from './errors/resource-not-found-error'
 import { ValidateCheckInUseCase } from './validate-check-in-use-case'
 
@@ -33,7 +35,8 @@ describe('Validate Check-In Use Case', () => {
       expect.any(Date),
     )
   })
-  it('should be able to validate an inexistent check-in', async () => {
+
+  it('should not be able to validate an inexistent check-in', async () => {
     await expect(() =>
       sut.execute({
         checkInId: 'inexistent-check-in-id',
@@ -41,7 +44,7 @@ describe('Validate Check-In Use Case', () => {
     ).rejects.toBeInstanceOf(ResourceNotFoundError)
   })
 
-  it('should not be able to validate the check-in after 20 minutes after of it is creation', async () => {
+  it('should not be able to validate the check-in 20 minutes after its creation', async () => {
     vi.setSystemTime(new Date(2025, 7, 1, 13, 40))
 
     const createdCheckIn = await checkInsRepository.create({
@@ -57,6 +60,19 @@ describe('Validate Check-In Use Case', () => {
       sut.execute({
         checkInId: createdCheckIn.id,
       }),
-    ).rejects.toBeInstanceOf(Error)
+    ).rejects.toBeInstanceOf(LateCheckInValidationError)
+  })
+
+  it('should not be able to validate the same check-in twice', async () => {
+    const createdCheckIn = await checkInsRepository.create({
+      gym_id: 'gym-01',
+      user_id: 'user-01',
+    })
+
+    await sut.execute({ checkInId: createdCheckIn.id })
+
+    await expect(() =>
+      sut.execute({ checkInId: createdCheckIn.id }),
+    ).rejects.toBeInstanceOf(CheckInAlreadyValidatedError)
   })
 })

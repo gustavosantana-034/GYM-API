@@ -1,8 +1,8 @@
-import { PrimsaCheckInsRepository } from '@/repositories/prisma/prisma-check-ins-repository'
+import { PrismaCheckInsRepository } from '@/repositories/prisma/prisma-check-ins-repository'
 import { GetUserMetricsUseCase } from '../get-user-metrics-use-case'
 
 export function makeGetUserMetricsUseCase() {
-  const checkInsRepository = new PrimsaCheckInsRepository()
+  const checkInsRepository = new PrismaCheckInsRepository()
   // sourcery skip: inline-immediately-returned-variable
   const useCase = new GetUserMetricsUseCase(checkInsRepository)
 

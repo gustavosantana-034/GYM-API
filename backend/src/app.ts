@@ -1,19 +1,19 @@
 import fastifyCookie from '@fastify/cookie'
-import fastifyJwt from '@fastify/jwt'
 import fastifyCors from '@fastify/cors'
+import fastifyJwt from '@fastify/jwt'
 import fastify from 'fastify'
-import { ZodError } from 'zod'
 import { env } from './env'
+import { REFRESH_TOKEN_COOKIE } from './http/auth-tokens'
 import { checkInRoutes } from './http/controllers/check-ins/routes'
 import { gymsRoutes } from './http/controllers/gyms/routes'
 import { userRoutes } from './http/controllers/users/routes'
+import { errorHandler } from './http/error-handler'
 
 export const app = fastify()
 
-// Enable CORS
 app.register(fastifyCors, {
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
-  credentials: true,
+  origin: env.CORS_ORIGIN,
+  credentials: true, // the refresh token travels in a cookie
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 })
@@ -21,8 +21,8 @@ app.register(fastifyCors, {
 app.register(fastifyJwt, {
   secret: env.JWT_SECRET,
   cookie: {
-    cookieName: 'refreshToken', // name of the cookie to store the refresh token
-    signed: false, // do not sign the cookie, JWT will handle it
+    cookieName: REFRESH_TOKEN_COOKIE,
+    signed: false, // the JWT signature already protects its content
   },
   sign: {
     expiresIn: '10m',
@@ -31,24 +31,10 @@ app.register(fastifyJwt, {
 
 app.register(fastifyCookie)
 
+app.get('/health', async () => ({ status: 'ok' }))
+
 app.register(userRoutes)
 app.register(gymsRoutes)
 app.register(checkInRoutes)
 
-app.setErrorHandler((error, _, reply) => {
-  if (error instanceof ZodError) {
-    return reply.status(400).send({
-      message: 'Validation error',
-      issue: error.format(),
-    })
-  }
-
-  if (env.NODE_ENV !== 'production') {
-    console.error(error)
-  } else {
-    // TODO -  here we should log to on external tool
-  }
-  return reply.status(500).send({
-    message: 'Internal Server Error',
-  })
-})
+app.setErrorHandler(errorHandler)

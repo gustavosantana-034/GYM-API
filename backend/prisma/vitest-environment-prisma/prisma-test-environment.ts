@@ -38,7 +38,9 @@ export default <Environment>{
         // Imported lazily so the client picks up the per-test DATABASE_URL
         const { prisma } = await import('@/lib/prisma')
 
-        await prisma.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`)
+        await prisma.$executeRawUnsafe(
+          `DROP SCHEMA IF EXISTS "${schema}" CASCADE`,
+        )
         await prisma.$disconnect()
       },
     }

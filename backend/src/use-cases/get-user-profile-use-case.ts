@@ -11,16 +11,8 @@ interface GetUserProfileUseCaseResponse {
 }
 
 export class GetUserProfileUseCase {
-  // constructor() {} → Receives the database instance via Prisma Client
   constructor(private usersRepository: UserRepository) {}
 
-  // Our method of instance class
-  /*
-    const usersRepository: {
-        findByEmail: (email: string) => Promise<{ ... 5 more } | null>;
-        create: (data: UserCreateInput) => Promise<{ ... 5 more }>;
-    } 
-  */
   async execute({
     userId,
   }: GetUserProfileUseCaseRequest): Promise<GetUserProfileUseCaseResponse> {

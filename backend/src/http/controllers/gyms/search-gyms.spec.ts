@@ -65,4 +65,37 @@ describe('Search Gyms Controller', () => {
     )
     expect(response.body.gyms).toHaveLength(1)
   })
+  it('should search ignoring case and filter by modality', async () => {
+    const { token } = await createAndAuthenticateUser(app)
+
+    await prisma.gym.createMany({
+      data: [
+        {
+          title: 'Zen Studio',
+          address: 'Av. Paulista, 1000',
+          modalities: ['YOGA'],
+          latitude: -23.55,
+          longitude: -46.63,
+        },
+        {
+          title: 'Paulista Fight',
+          address: 'Av. Paulista, 2000',
+          modalities: ['MARTIAL_ARTS'],
+          latitude: -23.55,
+          longitude: -46.63,
+        },
+      ],
+    })
+
+    const response = await request(app.server)
+      .get('/gyms/search')
+      .query({ query: 'PAULISTA', modality: 'YOGA' })
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(response.statusCode).toEqual(200)
+    expect(response.body.gyms).toEqual([
+      expect.objectContaining({ title: 'Zen Studio' }),
+    ])
+  })
 })

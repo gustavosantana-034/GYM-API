@@ -13,7 +13,7 @@ describe('Register Use Case', () => {
     sut = new RegisterUseCase(usersRepository)
   })
 
-  it('should be to register', async () => {
+  it('should be able to register', async () => {
     const { user } = await sut.execute({
       name: 'Jhon Doe',
       email: 'jhondoe@example.com',
@@ -54,5 +54,40 @@ describe('Register Use Case', () => {
         password: '123456',
       }),
     ).rejects.toBeInstanceOf(EmailAlreadyExists)
+  })
+  it('should normalize the email before storing it', async () => {
+    const { user } = await sut.execute({
+      name: 'Jhon Doe',
+      email: '  JhonDoe@Example.com ',
+      password: '123456',
+    })
+
+    expect(user.email).toEqual('jhondoe@example.com')
+  })
+
+  it('should treat emails with different casing as the same account', async () => {
+    await sut.execute({
+      name: 'Jhon Doe',
+      email: 'jhondoe@example.com',
+      password: '123456',
+    })
+
+    await expect(
+      sut.execute({
+        name: 'Jhon Doe',
+        email: 'JHONDOE@example.com',
+        password: '123456',
+      }),
+    ).rejects.toBeInstanceOf(EmailAlreadyExists)
+  })
+
+  it('should register new users as members', async () => {
+    const { user } = await sut.execute({
+      name: 'Jhon Doe',
+      email: 'jhondoe@example.com',
+      password: '123456',
+    })
+
+    expect(user.role).toEqual('MEMBER')
   })
 })

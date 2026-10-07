@@ -1,12 +1,23 @@
-import { Gym, Prisma } from '@prisma/client'
+import { Gym, Modality, Prisma } from '@prisma/client'
 
 export interface FindManyNearbyParams {
   latitude: number
   longitude: number
+  radiusInKm: number
 }
+
+export interface SearchManyParams {
+  query?: string
+  modality?: Modality
+  page: number
+}
+
 export interface GymsRepository {
-  finbById(id: string): Promise<Gym | null>
+  findById(id: string): Promise<Gym | null>
+  /** Gyms inside the radius, closest first. */
   findManyNearby(params: FindManyNearbyParams): Promise<Gym[]>
-  searchMany(query: string, page: number): Promise<Gym[]>
+  /** Case-insensitive match on title or address, optionally by modality. */
+  searchMany(params: SearchManyParams): Promise<Gym[]>
   create(data: Prisma.GymCreateInput): Promise<Gym>
+  save(gym: Gym): Promise<Gym>
 }

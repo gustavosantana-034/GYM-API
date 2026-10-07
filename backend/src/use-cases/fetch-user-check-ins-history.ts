@@ -1,5 +1,7 @@
-import { CheckIn } from '@prisma/client'
-import { CheckInsRepository } from '../repositories/check-ins-repository'
+import {
+  CheckInsRepository,
+  CheckInWithGym,
+} from '../repositories/check-ins-repository'
 
 interface FetchUserCheckInsHistoryUseCaseRequest {
   userId: string
@@ -7,7 +9,7 @@ interface FetchUserCheckInsHistoryUseCaseRequest {
 }
 
 interface FetchUserCheckInsHistoryUseCaseResponse {
-  checkIns: CheckIn[]
+  checkIns: CheckInWithGym[]
 }
 
 export class FetchUserCheckInsHistoryUseCase {

@@ -10,7 +10,7 @@ export const createAndAuthenticateUser = async (
 ) => {
   const uniqueEmail = `johndoe-${randomUUID()}@example.com`
 
-  await prisma.user.create({
+  const user = await prisma.user.create({
     data: {
       name: 'John Doe',
       email: uniqueEmail,
@@ -29,5 +29,7 @@ export const createAndAuthenticateUser = async (
   return {
     token,
     email: uniqueEmail,
+    userId: user.id,
+    cookies: authResponse.get('Set-Cookie') ?? [],
   }
 }

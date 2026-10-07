@@ -1,8 +1,9 @@
-import { Gym } from '@prisma/client'
+import { Gym, Modality } from '@prisma/client'
 import { GymsRepository } from '../repositories/gyms-repository'
 
 interface SearchGymsUseCaseRequest {
-  query: string
+  query?: string
+  modality?: Modality
   page: number
 }
 
@@ -15,9 +16,14 @@ export class SearchGymsUseCase {
 
   async execute({
     query,
+    modality,
     page,
   }: SearchGymsUseCaseRequest): Promise<SearchGymsUseCaseResponse> {
-    const gyms = await this.gymsRepository.searchMany(query, page)
+    const gyms = await this.gymsRepository.searchMany({
+      query: query?.trim() || undefined,
+      modality,
+      page,
+    })
 
     return {
       gyms,

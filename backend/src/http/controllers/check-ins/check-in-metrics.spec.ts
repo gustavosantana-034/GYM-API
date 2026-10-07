@@ -48,6 +48,12 @@ describe('Check-In Metrics Controller', () => {
       .send()
 
     expect(response.statusCode).toEqual(200)
-    expect(response.body.checkInsCount).toEqual(2)
+    expect(response.body).toEqual({
+      checkInsCount: 2,
+      checkInsThisWeek: expect.any(Number),
+      checkInsThisMonth: expect.any(Number),
+      currentStreak: expect.any(Number),
+      bestStreak: expect.any(Number),
+    })
   })
 })
