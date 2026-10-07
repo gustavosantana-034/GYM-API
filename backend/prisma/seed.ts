@@ -13,8 +13,11 @@
 import { Modality, PrismaClient } from '@prisma/client'
 import { hash } from 'bcryptjs'
 import 'dotenv/config'
+import { toDirectDatabaseUrl } from '../src/lib/database-url'
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({
+  datasourceUrl: toDirectDatabaseUrl(process.env.DATABASE_URL ?? ''),
+})
 
 const center = {
   latitude: Number(process.env.SEED_LATITUDE ?? -23.5614), // Av. Paulista, SP

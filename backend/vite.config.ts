@@ -20,6 +20,7 @@ export default defineConfig({
             'src/use-cases/**/*.spec.ts',
             'src/utils/**/*.spec.ts',
             'src/providers/**/*.spec.ts',
+            'src/lib/**/*.spec.ts',
           ],
           environment: 'node',
         },
