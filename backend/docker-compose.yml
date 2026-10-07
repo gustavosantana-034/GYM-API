@@ -1,0 +1,15 @@
+services:
+  gym-platform-pg:
+    image: postgres:17-alpine
+    container_name: gym-platform-pg
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: gym-platform
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

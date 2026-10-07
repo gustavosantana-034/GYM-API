@@ -1,32 +1,37 @@
-name: Run E2e Tests
+name: E2E Tests
 
 on: [pull_request]
 
 jobs:
-  run-e2e-tests:
+  backend-e2e:
+    name: Backend e2e tests
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: backend
     services:
-      gym-api-pg:
-        image: bitnami/postgresql
+      postgres:
+        image: postgres:17-alpine
         ports:
-          - 5434:5432
+          - 5432:5432
         env:
-          POSTGRESQL_USERNAME: docker
-          POSTGRESQL_PASSWORD: docker
-          POSTGRESQL_DATABASE: gym-api
-
+          POSTGRES_USER: docker
+          POSTGRES_PASSWORD: docker
+          POSTGRES_DB: gym-platform
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
-
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
       - run: npm ci
-
       - run: npm run test:e2e
         env:
           JWT_SECRET: testing
-          DATABASE_URL: "postgresql://docker:docker@localhost:5434/gym-api"
+          DATABASE_URL: postgresql://docker:docker@localhost:5432/gym-platform?schema=public
