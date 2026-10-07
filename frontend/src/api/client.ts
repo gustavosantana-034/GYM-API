@@ -3,7 +3,10 @@ import type { AuthResponse } from '@/types/api'
 import { tokenStore } from './token-store'
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:3333',
+  // Production builds talk to /api on their own domain (see vercel.json);
+  // localhost is only a development fallback.
+  baseURL:
+    import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? '/api' : 'http://localhost:3333'),
   withCredentials: true, // sends the httpOnly refresh token cookie
   // The free API instance sleeps when idle and takes ~50s to wake up
   timeout: 70_000,
