@@ -5,8 +5,17 @@ import { tokenStore } from './token-store'
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:3333',
   withCredentials: true, // sends the httpOnly refresh token cookie
-  timeout: 15_000,
+  // The free API instance sleeps when idle and takes ~50s to wake up
+  timeout: 70_000,
 })
+
+/**
+ * Wakes the API up as soon as the app opens, so it is likely awake by the
+ * time the user signs in.
+ */
+export function warmUpApi() {
+  api.get('/health').catch(() => undefined)
+}
 
 api.interceptors.request.use((config) => {
   const token = tokenStore.get()
