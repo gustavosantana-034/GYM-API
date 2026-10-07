@@ -1,0 +1,87 @@
+/*
+ * Pulso design tokens.
+ *
+ * Raw values live here as CSS custom properties so the theme can be swapped
+ * at runtime (data-theme on <html>). index.css exposes them to Tailwind.
+ *
+ * Dark is the primary theme: a graphite base with one vibrant "volt" accent
+ * for energy and actions, and a technical cyan reserved for geo data
+ * (location, distance rings, map).
+ */
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Surfaces, from the page background up */
+  --bg: #0b0e10;
+  --surface-1: #12161a;
+  --surface-2: #1a1f24;
+  --surface-3: #232a30;
+  --border: #2a3238;
+  --border-strong: #3a444b;
+
+  /* Text: AA contrast (>= 4.5) on every surface up to --surface-2 */
+  --text: #eef2f3;
+  --text-muted: #9aa4aa;
+  --text-subtle: #858f95;
+
+  /* Volt: primary actions and highlights. --on-primary is the text on it. */
+  --primary: #c6f432;
+  --primary-hover: #d4ff4d;
+  --primary-ink: #c6f432; /* primary used as text/icon on --bg */
+  --primary-soft: rgb(198 244 50 / 0.12);
+  --on-primary: #0b0e10;
+
+  /* Cyan: location and distance only */
+  --geo: #3dd6c6;
+  --geo-soft: rgb(61 214 198 / 0.14);
+
+  /* Feedback */
+  --success: #5be08a;
+  --success-soft: rgb(91 224 138 / 0.14);
+  --warning: #f5b841;
+  --warning-soft: rgb(245 184 65 / 0.14);
+  --danger: #ff6b5e;
+  --danger-soft: rgb(255 107 94 / 0.14);
+
+  --focus-ring: #c6f432;
+  --overlay: rgb(5 7 8 / 0.72);
+  /* Turns the light OSM tiles into a graphite map that matches the theme */
+  --map-filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88) saturate(0.35);
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f4f5f1;
+  --surface-1: #ffffff;
+  --surface-2: #eceee8;
+  --surface-3: #e1e4dc;
+  --border: #dadfd5;
+  --border-strong: #bcc3b6;
+
+  --text: #0e1215;
+  --text-muted: #4f585e;
+  --text-subtle: #626b71;
+
+  --primary: #c6f432;
+  --primary-hover: #b8e623;
+  --primary-ink: #3f6600; /* volt is too light to be read as text on white */
+  --primary-soft: rgb(132 180 0 / 0.14);
+  --on-primary: #0b0e10;
+
+  --geo: #087a6f;
+  --geo-soft: rgb(11 138 126 / 0.12);
+
+  --success: #17803d;
+  --success-soft: rgb(23 128 61 / 0.1);
+  --warning: #9a6200;
+  --warning-soft: rgb(154 98 0 / 0.1);
+  --danger: #c4321f;
+  --danger-soft: rgb(196 50 31 / 0.1);
+
+  --focus-ring: #3f6600;
+  --overlay: rgb(14 18 21 / 0.5);
+  --map-filter: saturate(0.6) contrast(0.95);
+}

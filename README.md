@@ -1,229 +1,206 @@
-# 🏋️‍♂️ CyberFit - Futuristic Fitness Platform
+# Gym Platform · Pulso
 
-A full-featured fitness platform with a futuristic design, featuring user authentication, gym management, check-ins with location validation, and daily usage tracking.
+Plataforma full stack para encontrar academias perto de você e fazer check-in pelo celular. O conceito é parecido com o de serviços de acesso a academias: o usuário descobre academias e modalidades ao redor, faz check-in quando está a até 100 m de uma delas, e a academia valida a presença.
 
-## 🚀 Features
+O projeto nasceu como a API do curso de Node.js da Rocketseat e foi evoluído para um produto completo. O backend foi revisado e ganhou testes e endpoints novos, e ganhou um frontend novo com identidade visual própria: **Pulso**.
 
-### Backend (Fastify + TypeScript)
-- **User Authentication**: JWT-based authentication with refresh tokens
-- **Gym Management**: Create, search, and find nearby gyms
-- **Check-in System**: Location-based check-ins with validation
-- **Metrics**: Track check-in history and statistics
-- **Role-based Access**: Admin and user roles
-- **Database**: PostgreSQL with Prisma ORM
+```txt
+gym-api/
+├── backend/    API REST · Node.js, Fastify, Prisma, PostgreSQL
+└── frontend/   Web app · React, TypeScript, Vite, Leaflet
+```
 
-### Frontend (React + TypeScript)
-- **Futuristic UI**: Cyberpunk-inspired design with neon colors
-- **Real-time Tracking**: Live workout session monitoring
-- **Gym Check-ins**: Location-based gym check-in system
-- **Interactive Charts**: Real-time fitness metrics visualization
-- **Responsive Design**: Works on all devices
-- **Dark Theme**: Eye-friendly dark interface
+## Funcionalidades
 
-## 🛠️ Tech Stack
+### Para quem treina
+
+- Cadastro e login, com sessão mantida por refresh token (cookie httpOnly)
+- Academias próximas a partir da localização do navegador, com distância até cada uma
+- Exploração em **lista ou mapa**, com filtros de distância (1 a 20 km) e modalidade
+- Busca por nome, endereço ou modalidade ("natação" vira o filtro de Natação)
+- Página da academia com mapa, modalidades e contato
+- **Check-in com verificação de distância**: o app mostra quão perto você está e o servidor confirma a regra dos 100 m
+- Histórico de check-ins agrupado por mês, com status de validação
+- Progresso: treinos na semana e no mês, sequência atual e melhor sequência
+- Perfil com tema claro, escuro ou do sistema
+
+### Para administradores
+
+- **Importação de academias reais** do OpenStreetMap num raio de 10 km da localização atual, com nome, endereço, telefone e modalidades
+- Fila de check-ins pendentes com contagem regressiva da janela de validação de 20 min
+- Cadastro e edição de academias, com a posição escolhida no mapa
+
+## Regras de negócio
+
+As regras são aplicadas no servidor. O frontend só antecipa o feedback.
+
+| Regra | Onde |
+|---|---|
+| Check-in só a até **100 m** da academia | `CheckInUseCase` |
+| **Um check-in por dia** por usuário (o dia segue o fuso `APP_TIMEZONE`) | `CheckInUseCase` |
+| Validação do check-in só até **20 minutos** depois de criado, e uma única vez | `ValidateCheckInUseCase` |
+| Apenas **ADMIN** cria/edita academias, lista e valida check-ins | `verifyUserRole` |
+| E-mail único (sem diferenciar maiúsculas), senha com hash bcrypt | `RegisterUseCase` |
+| Listagens paginadas de 20 em 20 | repositories |
+
+## Stack
+
+| | Backend | Frontend |
+|---|---|---|
+| Linguagem | TypeScript | TypeScript |
+| Framework | Fastify 5 | React 19 + Vite |
+| Dados | Prisma 6 + PostgreSQL | TanStack Query 5 + Axios |
+| Validação | Zod | Zod + React Hook Form |
+| Auth | JWT (access token) + refresh token em cookie httpOnly | Token em memória, refresh automático no interceptor |
+| Mapas | Haversine (SQL e TS), importação via Overpass API (OSM) | Leaflet + OpenStreetMap (sem chave de API) |
+| UI | | Tailwind CSS 4, Motion, Lucide |
+| Testes | Vitest (unitários e E2E com Supertest) | Vitest |
+
+## Arquitetura
 
 ### Backend
-- **Runtime**: Node.js 22.17.1
-- **Framework**: Fastify
-- **Language**: TypeScript
-- **Database**: PostgreSQL
-- **ORM**: Prisma
-- **Authentication**: JWT
-- **Testing**: Vitest
-- **Validation**: Zod
+
+Clean Architecture enxuta, com SOLID e inversão de dependência:
+
+```txt
+backend/src/
+├── http/
+│   ├── controllers/     # validam a entrada (Zod) e chamam os use cases
+│   ├── middlewares/     # verifyJwt, verifyUserRole
+│   ├── presenters/      # formato público de Gym e User
+│   └── error-handler.ts # erro de domínio → status HTTP, em um só lugar
+├── use-cases/           # regras de negócio, sem conhecer HTTP nem Prisma
+│   ├── errors/          # erros de domínio
+│   └── factories/       # montam use cases com os repositories reais
+├── repositories/        # interfaces + implementações Prisma e in-memory
+├── providers/           # fontes externas (OpenStreetMap/Overpass) atrás de uma interface
+├── lib/  env/  utils/
+```
+
+Os testes unitários usam os repositories **in-memory**. Os E2E sobem a aplicação real contra um schema do PostgreSQL isolado por arquivo de teste.
+
+A documentação de todas as rotas está em **[backend/docs/API.md](backend/docs/API.md)**.
 
 ### Frontend
-- **Framework**: React 18
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion
-- **Charts**: Recharts
-- **Icons**: Lucide React
-- **Routing**: React Router DOM
 
-## 📦 Installation
-
-### Prerequisites
-- Node.js 22.17.1
-- PostgreSQL database
-- Git
-
-### Quick Start
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/gustavosantana-034/GYM-API.git
-   cd GYM-API
-   ```
-
-2. **Install all dependencies**
-   ```bash
-   npm run install:all
-   ```
-
-3. **Set up environment variables**
-   
-   Create a `.env` file in the root directory:
-   ```env
-   NODE_ENV=dev
-   JWT_SECRET=your-super-secret-jwt-key
-   PORT=3333
-   DATABASE_URL="postgresql://username:password@localhost:5432/gym_api"
-   ```
-
-4. **Set up the database**
-   ```bash
-   npx prisma migrate dev
-   npx prisma generate
-   ```
-
-5. **Start both frontend and backend**
-   ```bash
-   npm run dev
-   ```
-
-This will start:
-- Backend on: http://localhost:3333
-- Frontend on: http://localhost:3000
-
-## 🎯 API Endpoints
-
-### Authentication
-- `POST /users` - Register new user
-- `POST /sessions` - Login
-- `PATCH /token/refresh` - Refresh JWT token
-- `GET /me` - Get user profile
-
-### Gyms
-- `GET /gyms/search?q=query` - Search gyms
-- `GET /gyms/nearby?latitude=X&longitude=Y` - Find nearby gyms
-- `POST /gyms` - Create gym (Admin only)
-
-### Check-ins
-- `POST /gyms/:gymId/check-ins` - Create check-in
-- `GET /check-ins/history` - Get check-in history
-- `GET /check-ins/metrics` - Get check-in metrics
-- `PATCH /check-ins/:checkInId/validate` - Validate check-in (Admin only)
-
-## 🎨 Frontend Features
-
-### Pages
-- **Dashboard**: Overview of fitness metrics
-- **Activity Tracker**: Real-time workout tracking and gym check-ins
-- **Workout Planner**: Plan and schedule workouts
-- **Membership**: Manage subscription plans
-- **AI Trainer**: AI-powered workout recommendations
-
-### Components
-- **Loading Spinner**: Futuristic loading animations
-- **Notifications**: Toast notifications for user feedback
-- **Charts**: Real-time fitness data visualization
-- **Cyber Cards**: Styled containers with neon effects
-
-## 🔧 Development
-
-### Backend Development
-```bash
-# Start backend in development mode
-npm run start:dev
-
-# Run tests
-npm run test
-
-# Run tests with coverage
-npm run test:coverage
-
-# Build for production
-npm run build
+```txt
+frontend/src/
+├── api/          # cliente Axios, refresh single-flight, serviços por recurso
+├── components/   # ui/ (design system), gym/, map/, check-in/, layout/...
+├── features/     # auth, location (Geolocation API), theme
+├── hooks/        # queries e mutations (TanStack Query)
+├── pages/        # uma pasta por área: auth, home, explore, gyms, check-ins, profile, admin
+├── routes/       # rotas com lazy loading
+├── schemas/      # formulários (Zod)
+└── utils/        # distância, formatação pt-BR, modalidades
 ```
 
-### Frontend Development
+O design system está documentado em **[frontend/docs/DESIGN.md](frontend/docs/DESIGN.md)**.
+
+## Como rodar
+
+Pré-requisitos: **Node.js 22+** e **Docker** (ou um PostgreSQL próprio).
+
+### 1. Backend
+
 ```bash
-# Navigate to frontend directory
-cd frontend
-
-# Start frontend in development mode
-npm start
-
-# Build for production
-npm run build
-
-# Run tests
-npm test
+cd backend
+cp .env.example .env
+docker compose up -d     # PostgreSQL na porta 5433
+npm install              # também gera o Prisma Client
+npm run db:migrate       # aplica as migrations
+npm run db:seed          # opcional: usuários e academias de exemplo
+npm run dev              # http://localhost:3333
 ```
 
-### Database Management
+O seed cria duas contas, com senha `123456`:
+
+| Conta | Papel |
+|---|---|
+| `admin@gymplatform.dev` | ADMIN |
+| `member@gymplatform.dev` | MEMBER |
+
+Ele também cria 13 academias fictícias ao redor da Av. Paulista (SP), úteis para testar sem internet. Para testar o check-in de onde você está, gere as academias ao seu redor:
+
 ```bash
-# Run migrations
-npx prisma migrate dev
-
-# Reset database
-npx prisma migrate reset
-
-# Open Prisma Studio
-npx prisma studio
+SEED_LATITUDE=-22.9068 SEED_LONGITUDE=-43.1729 npm run db:seed -- --reset
 ```
 
-## 🧪 Testing
+A academia **Iron House** fica a ~50 m do ponto central, perto o bastante para o check-in. Também dá para simular a posição no navegador em DevTools → Sensors → Location.
 
-### Backend Tests
+### Academias reais da sua região
+
+As academias reais vêm do [OpenStreetMap](https://www.openstreetmap.org), que é gratuito e não exige chave de API. Há duas formas de importar:
+
+- **Pelo app:** entre como admin e vá em **Painel admin → Academias → Importar academias reais**. O navegador pede sua localização e importa tudo num raio de 10 km.
+- **Pelo terminal:**
+
+  ```bash
+  npm run gyms:import -- --lat -23.5614 --lng -46.6559 --dry-run   # só lista, sem salvar
+  npm run gyms:import -- --lat -23.5614 --lng -46.6559 --radius 10
+  ```
+
+Para ficar só com as academias reais, apague as fictícias antes de importar. O comando abaixo remove todas as academias e check-ins e mantém as contas:
+
 ```bash
-# Run unit tests
-npm run test
-
-# Run e2e tests
-npm run test:e2e
-
-# Run tests with UI
-npm run test:ui
+npm run db:seed -- --reset --users-only
 ```
 
-### Frontend Tests
+Importar de novo é seguro: academias já importadas são atualizadas, sem duplicar. Os dados são © colaboradores do OpenStreetMap (ODbL), e a página de cada academia importada mostra esse crédito.
+
+### 2. Frontend
+
 ```bash
 cd frontend
-npm test
+cp .env.example .env
+npm install
+npm run dev              # http://localhost:5173
 ```
 
-## 🚀 Deployment
+### Variáveis de ambiente
 
-### Backend Deployment
-1. Build the project: `npm run build`
-2. Set production environment variables
-3. Deploy to your preferred platform (Heroku, Vercel, etc.)
+#### backend/.env
 
-### Frontend Deployment
-1. Build the project: `cd frontend && npm run build`
-2. Deploy the `build` folder to your preferred platform
+| Variável | Descrição | Padrão |
+|---|---|---|
+| `NODE_ENV` | `dev`, `test` ou `production` | `dev` |
+| `PORT` | Porta da API | `3333` |
+| `DATABASE_URL` | Conexão PostgreSQL | obrigatória |
+| `JWT_SECRET` | Segredo de assinatura dos tokens | obrigatória |
+| `CORS_ORIGIN` | Origens permitidas, separadas por vírgula | `http://localhost:5173` |
+| `APP_TIMEZONE` | Fuso que define o "dia" do check-in | `America/Sao_Paulo` |
 
-## 📱 Mobile Support
+#### frontend/.env
 
-The frontend is fully responsive and works great on mobile devices. The gym check-in feature uses the device's GPS for location validation.
+| Variável | Descrição | Padrão |
+|---|---|---|
+| `VITE_API_URL` | URL da API | `http://localhost:3333` |
 
-## 🤝 Contributing
+## Scripts
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Commit your changes: `git commit -am 'Add feature'`
-4. Push to the branch: `git push origin feature-name`
-5. Submit a pull request
+| Backend | |
+|---|---|
+| `npm run dev` | API em modo watch |
+| `npm run build` / `npm start` | Build de produção e execução |
+| `npm test` | Testes unitários |
+| `npm run test:e2e` | Testes E2E (precisa do PostgreSQL rodando) |
+| `npm run lint` / `npm run typecheck` | Qualidade |
+| `npm run db:migrate` / `db:deploy` / `db:seed` | Banco de dados |
+| `npm run gyms:import -- --lat .. --lng ..` | Importa academias reais do OpenStreetMap |
 
-## 📄 License
+| Frontend | |
+|---|---|
+| `npm run dev` | Servidor de desenvolvimento |
+| `npm run build` / `npm run preview` | Build de produção e pré-visualização |
+| `npm test` | Testes dos utilitários |
+| `npm run lint` / `npm run typecheck` | Qualidade |
 
-This project is licensed under the ISC License.
+## Testes
 
-## 👨‍💻 Author
+- **Backend:** 66 testes unitários (use cases, cálculo de sequência e importação do OpenStreetMap com `fetch` simulado) e 42 E2E, que cobrem autenticação, permissões (401/403), erros de domínio, refresh token, geolocalização e o fluxo de check-in.
+- **Frontend:** testes dos utilitários (distância, formatação, modalidades, agrupamento por mês).
+- **CI:** GitHub Actions roda lint, typecheck e testes unitários a cada push, e os E2E em pull requests.
 
-**Gustavo Santana**
-- GitHub: [@gustavosantana-034](https://github.com/gustavosantana-034)
-- Project: [GYM-API](https://github.com/gustavosantana-034/GYM-API)
+## Autor
 
-## 🙏 Acknowledgments
-
-- Fastify team for the excellent framework
-- Prisma team for the amazing ORM
-- React team for the frontend framework
-- All contributors and supporters
-
----
-
-**Ready to start your futuristic fitness journey?** 🚀💪
+Gustavo Santana · [GitHub](https://github.com/gustavosantana-034)

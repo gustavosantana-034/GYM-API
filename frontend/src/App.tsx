@@ -1,152 +1,42 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import Navbar from './components/layout/Navbar';
-import Sidebar from './components/layout/Sidebar';
-import Dashboard from './pages/Dashboard';
-import WorkoutPlanner from './pages/WorkoutPlanner';
-import ActivityTracker from './pages/ActivityTracker';
-import Membership from './pages/Membership';
-import AITrainer from './pages/AITrainer';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Profile from './pages/Profile';
-import Analytics from './pages/Analytics';
-import IconTest from './components/IconTest';
-import DebugIcons from './components/DebugIcons';
-import NotificationContainer from './components/ui/NotificationContainer';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { NotificationProvider } from './contexts/NotificationContext';
-import { ProtectedRouteProps, AppLayoutProps } from './types';
-import './index.css';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MotionConfig } from 'motion/react'
+import { RouterProvider } from 'react-router'
+import { getErrorStatus } from '@/api/errors'
+import { ToastProvider } from '@/components/ui/ToastProvider'
+import { AuthProvider } from '@/features/auth/AuthProvider'
+import { LocationProvider } from '@/features/location/LocationProvider'
+import { ThemeProvider } from '@/features/theme/ThemeProvider'
+import { router } from '@/routes/router'
 
-// Protected Route Component
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
-};
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+      // Client errors (404, 403...) will not change by retrying
+      retry: (failureCount, error) => {
+        const status = getErrorStatus(error)
+        return (!status || status >= 500) && failureCount < 2
+      },
+    },
+  },
+})
 
-// Main App Layout
-const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
+export function App() {
   return (
-    <div className="flex h-screen bg-dark-bg overflow-hidden">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <Navbar />
-        <main className="flex-1 overflow-y-auto p-6 cyber-grid">
-          <AnimatePresence mode="wait">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="h-full"
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        </main>
-      </div>
-    </div>
-  );
-};
-
-// App Routes
-const AppRoutes: React.FC = () => {
-  return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/icon-test" element={<IconTest />} />
-      <Route path="/debug-icons" element={<DebugIcons />} />
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <Dashboard />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/workout-planner"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <WorkoutPlanner />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/activity-tracker"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <ActivityTracker />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/membership"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <Membership />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/ai-trainer"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <AITrainer />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <Profile />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/analytics"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <Analytics />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
-  );
-};
-
-// Main App Component
-const App: React.FC = () => {
-  return (
-    <NotificationProvider>
-      <AuthProvider>
-        <Router>
-          <div className="App">
-            <AppRoutes />
-            <NotificationContainer />
-          </div>
-        </Router>
-      </AuthProvider>
-    </NotificationProvider>
-  );
-};
-
-export default App; 
+    <ThemeProvider>
+      {/* Respects the OS "reduce motion" setting for every animation */}
+      <MotionConfig reducedMotion="user">
+        <QueryClientProvider client={queryClient}>
+          <ToastProvider>
+            <AuthProvider>
+              <LocationProvider>
+                <RouterProvider router={router} />
+              </LocationProvider>
+            </AuthProvider>
+          </ToastProvider>
+        </QueryClientProvider>
+      </MotionConfig>
+    </ThemeProvider>
+  )
+}

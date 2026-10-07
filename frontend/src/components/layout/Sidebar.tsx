@@ -1,145 +1,61 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { 
-  Home, 
-  Calendar, 
-  Activity, 
-  Crown, 
-  MessageSquare,
-  TrendingUp,
-  Target,
-  Zap,
-  BarChart3
-} from 'lucide-react';
+import { Shield } from 'lucide-react'
+import { Link, NavLink } from 'react-router'
+import { Avatar } from '@/components/ui/Avatar'
+import { Logo } from '@/components/ui/Logo'
+import { useCurrentUser } from '@/features/auth/auth-context'
+import { cn } from '@/utils/cn'
+import { mainNavItems, type NavItem } from './nav-items'
 
-const Sidebar = () => {
-  const menuItems = [
-    {
-      path: '/',
-      icon: Home,
-      label: 'Dashboard',
-      color: 'text-neon-cyan'
-    },
-    {
-      path: '/activity-tracker',
-      icon: Activity,
-      label: 'Activity Tracker',
-      color: 'text-neon-green'
-    },
-    {
-      path: '/analytics',
-      icon: BarChart3,
-      label: 'Analytics',
-      color: 'text-neon-magenta'
-    },
-    {
-      path: '/membership',
-      icon: Crown,
-      label: 'Membership',
-      color: 'text-neon-yellow'
-    },
-    {
-      path: '/ai-trainer',
-      icon: MessageSquare,
-      label: 'AI Trainer',
-      color: 'text-neon-purple'
-    }
-  ];
+const linkStyles = ({ isActive }: { isActive: boolean }) =>
+  cn(
+    'flex h-11 items-center gap-3 rounded-md px-3 text-label font-semibold transition-colors',
+    isActive ? 'bg-primary-soft text-primary-ink' : 'text-muted hover:bg-surface-2 hover:text-text',
+  )
+
+function SidebarLink({ to, label, icon: Icon, end }: NavItem) {
+  return (
+    <NavLink to={to} end={end} className={linkStyles}>
+      <Icon aria-hidden className="size-5" />
+      {label}
+    </NavLink>
+  )
+}
+
+/** Desktop navigation. */
+export function Sidebar() {
+  const user = useCurrentUser()
 
   return (
-    <motion.aside 
-      className="w-64 bg-dark-card border-r border-dark-border flex flex-col"
-      initial={{ x: -100 }}
-      animate={{ x: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      {/* Logo Section */}
-      <div className="p-6 border-b border-dark-border">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-neon-cyan to-neon-blue rounded-xl flex items-center justify-center">
-            <Zap className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-lg font-orbitron font-bold text-neon-cyan neon-text">
-              CyberFit
-            </h2>
-            <p className="text-xs text-gray-400">Futuristic Fitness</p>
-          </div>
-        </div>
-      </div>
+    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-border bg-surface-1 px-4 py-6 lg:flex">
+      <Link to="/" className="mb-10 px-3" aria-label="Pulso, ir para o início">
+        <Logo />
+      </Link>
 
-      {/* Navigation Menu */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
-          {menuItems.map((item, index) => (
-            <motion.li
-              key={item.path}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <NavLink
-                to={item.path}
-                className={({ isActive }) =>
-                  `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 group ${
-                    isActive
-                      ? 'bg-gradient-to-r from-neon-cyan/20 to-neon-blue/20 border border-neon-cyan/30 text-neon-cyan'
-                      : 'text-gray-400 hover:text-white hover:bg-dark-bg'
-                  }`
-                }
-              >
-                <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`w-5 h-5 ${item.color}`}
-                >
-                  <item.icon />
-                </motion.div>
-                <span className="font-medium">{item.label}</span>
-              </NavLink>
-            </motion.li>
-          ))}
-        </ul>
+      <nav aria-label="Navegação principal" className="flex flex-col gap-1">
+        {mainNavItems.map((item) => (
+          <SidebarLink key={item.to} {...item} />
+        ))}
+
+        {user.role === 'ADMIN' && (
+          <>
+            <p className="mt-6 mb-2 px-3 text-caption font-semibold tracking-[0.12em] text-subtle uppercase">
+              Administração
+            </p>
+            <SidebarLink to="/admin" label="Painel admin" icon={Shield} />
+          </>
+        )}
       </nav>
 
-      {/* Quick Stats */}
-      <div className="p-4 border-t border-dark-border mb-4">
-        <div className="cyber-card p-4">
-          <h3 className="text-sm font-medium text-gray-300 mb-3">Quick Stats</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <TrendingUp className="w-4 h-4 text-neon-green" />
-                <span className="text-xs text-gray-400">Streak</span>
-              </div>
-              <span className="text-sm font-bold text-neon-green">12 days</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Target className="w-4 h-4 text-neon-magenta" />
-                <span className="text-xs text-gray-400">Goal</span>
-              </div>
-              <span className="text-sm font-bold text-neon-magenta">85%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Section */}
-      <div className="p-4 mt-auto">
-        <div className="cyber-card p-4 text-center">
-          <div className="w-12 h-12 bg-gradient-to-r from-neon-cyan to-neon-blue rounded-full mx-auto mb-3 flex items-center justify-center">
-            <Zap className="w-6 h-6 text-white" />
-          </div>
-          <p className="text-xs text-gray-400 mb-2">Ready to train?</p>
-          <button className="cyber-button text-xs px-4 py-2">
-            Start Workout
-          </button>
-        </div>
-      </div>
-    </motion.aside>
-  );
-};
-
-export default Sidebar; 
+      <Link
+        to="/profile"
+        className="mt-auto flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-surface-2"
+      >
+        <Avatar name={user.name} size="sm" />
+        <span className="flex min-w-0 flex-col">
+          <span className="truncate text-label font-semibold text-text">{user.name}</span>
+          <span className="truncate text-caption text-muted">{user.email}</span>
+        </span>
+      </Link>
+    </aside>
+  )
+}
